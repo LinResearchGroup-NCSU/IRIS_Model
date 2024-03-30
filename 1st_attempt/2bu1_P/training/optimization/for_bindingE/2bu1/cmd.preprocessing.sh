@@ -30,7 +30,7 @@ bash for_gBinder_sequences.sh
 
 # Find the indices of contacting protein-RNA residues
 # Cutoff for determining contacting residues, unit: nm
-export cutoff=1.2
+export cutoff=0.95
 python find_cm_residues.py native.pdb $cutoff randomize_position_prot.txt randomize_position_RNA.txt
 
 # Generate decoys for the RNA
@@ -41,13 +41,13 @@ cp randomize_position_RNA.txt native.seq gBinder_sequences.txt RNA_randomization
 
 python generate_decoy_seq_RNA.py
 
-## Generate decoys for the protein
-rm -r prot_randomization
-mkdir -p prot_randomization 
-#
-cp randomize_position_prot.txt native.seq gBinder_sequences.txt prot_randomization/
-#
-python generate_decoy_seq_prot.py
+### Generate decoys for the protein
+#rm -r prot_randomization
+#mkdir -p prot_randomization 
+##
+#cp randomize_position_prot.txt native.seq gBinder_sequences.txt prot_randomization/
+##
+#python generate_decoy_seq_prot.py
 
 # Combine the generated RNA and protein decoys together
 rm -r CPLEX_randomization

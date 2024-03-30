@@ -82,7 +82,7 @@ def get_filtered_gamma_B_lamb_P_and_lamb(A, B, half_B, other_half_B, std_half_B,
     
     cutoff_mode = min(cutoff_modes)
     # Hard set a cutoff_mode by looking at the Lamb file itself;
-    cutoff_mode = 70
+    cutoff_mode = 25
 
     print(cutoff_modes)
     print(cutoff_mode)
@@ -228,4 +228,4 @@ def calculate_A_B_and_gamma_xl23(training_set_file, phi_list_file_name, decoy_me
 gammas_directory = "./gammas/randomized_decoy/"
 
 calculate_A_B_and_gamma_xl23("native_trainSetFiles.txt", "phi1_list.txt", decoy_method='CPLEX_randomization', 
-                             num_decoys=11000, noise_filtering=True, jackhmmer=False)
+                             num_decoys=1000, noise_filtering=True, jackhmmer=False)

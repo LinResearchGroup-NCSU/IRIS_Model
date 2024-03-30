@@ -22,7 +22,7 @@ do
     # 根据提取的params更改文件名
     cp ../for_bindingE/$f/phis/phi_pairwise_contact_well_native_Rmodified_native_${params} phis/phi_pairwise_contact_well_${f}_native_${params}
     cp ../for_bindingE/$f/phis/phi_pairwise_contact_well_native_Rmodified_decoys_CPLEX_randomization_${params} phis/phi_pairwise_contact_well_${f}_decoys_CPLEX_randomization_${params}
-    cp ../for_bindingE/$f/tms/native.tm tms/${f}.tm
+    cp ../for_bindingE/$f/tms/native_Rmodified.tm tms/${f}.tm
 done < native_trainSetFiles.txt
 
 

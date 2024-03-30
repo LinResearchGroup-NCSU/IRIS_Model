@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
         z_scores, e_natives, e_mgs, e_mg_stds, e_decoys = validate_hamiltonian(
             hamiltonian='phi1_list.txt', training_set_file ='native_trainSetFiles.txt', training_decoy_method='CPLEX_randomization', 
-            num_decoys=1000, use_filtered_gammas=True)
+            num_decoys=492, use_filtered_gammas=True)
     
     
         # Save the energies

@@ -11,7 +11,7 @@
 cp evaluateE_use_same_gammas.py for_bindingE/loocv/evaluateE_use_same_gammas.py
 
 # Copy the trained gammma file in
-cp ../../training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-8.0_8.0_0.7_10_gamma_filtered for_bindingE/loocv/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-8.0_8.0_0.7_10_gamma_filtered
+cp ../../training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered for_bindingE/loocv/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered
 
 cd for_bindingE/loocv/
 

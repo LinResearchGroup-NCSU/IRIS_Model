@@ -62,12 +62,14 @@ def find_cm_residues(pdbfile, cutoff, random_position_file_protein, random_posit
  #   print(prot_RNA_respairs)
     prot_RNA_respair_distances, residue_pairs = md.compute_contacts(pdb, prot_RNA_respairs, scheme='closest-heavy')
 
-  #  print(prot_RNA_respair_distances)
-  #  print(residue_pairs)
 
     # Select those pairs that are closer than the cutoff
     prot_RNA_respair_distances = prot_RNA_respair_distances.flatten()
     cm_pair_idx = np.argwhere(prot_RNA_respair_distances < cutoff).flatten()
+
+    np.savetxt("respair_distances.txt", prot_RNA_respair_distances, fmt="%1.3f")
+    np.savetxt("res_pairs.txt", residue_pairs, fmt="%d")
+    np.savetxt("cm_pair_idx.txt", cm_pair_idx, fmt="%d")
 
     # Recover the 1-indexed protein and RNA residue IDs that are in contact
     prot_cm_resID = []
