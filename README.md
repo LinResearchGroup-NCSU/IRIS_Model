@@ -1,1 +1,1 @@
-# Protein_DNA_interaction_optimization
+# Interpretable_RNA_Inferenced_by_Structure (IRIS) model
