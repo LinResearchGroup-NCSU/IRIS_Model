@@ -6,5 +6,5 @@
 #########################################################################
 #!/bin/bash
 
-bash cmd.preprocessing.sh 1aq3 C
+bash cmd.preprocessing.sh 1aq3 A
 

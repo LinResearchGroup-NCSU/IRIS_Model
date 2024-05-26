@@ -65,7 +65,7 @@ def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, p
                     # be in the protein chain;
                     # The chain ID varies from one Complex to the other, be careful!!!
                     if (CPLEX_name == '1aq3'):                       
-                        if (res2chain == 'C'):
+                        if (res2chain == 'A'):
                             res1type = get_res_type(res_list_entire, res1)
                             res2type = get_res_type(res_list_entire, res2)
                             rij = get_interaction_distance(res1, res2)
