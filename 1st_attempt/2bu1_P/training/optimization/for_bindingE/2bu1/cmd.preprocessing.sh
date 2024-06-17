@@ -30,7 +30,7 @@ bash for_gBinder_sequences.sh
 
 # Find the indices of contacting protein-RNA residues
 # Cutoff for determining contacting residues, unit: nm
-export cutoff=1.20
+export cutoff=1.2
 python find_cm_residues.py native.pdb $cutoff randomize_position_prot.txt randomize_position_RNA.txt
 
 # Generate decoys for the RNA
