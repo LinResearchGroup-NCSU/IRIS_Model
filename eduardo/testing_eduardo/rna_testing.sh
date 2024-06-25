@@ -10,13 +10,13 @@ find . -mindepth 2 -name 'phi1_list.txt' -exec cp ./phi1_list.txt {} \;
 find . -type f -name "proteinList.txt" -not -path "./proteinList.txt" -exec cp ./proteinList.txt {} \;
 
 cp PDBs/${PDBid}_modified.pdb native_structures_pdbs_with_virtual_cbs/native.pdb
-cp PDBs/${PDBid}_Rmodified.pdb native_structures_pdbs_with_virtual_cbs/nativeRmodified.pdb
+cp PDBs/${PDBid}_Rmodified.pdb native_structures_pdbs_with_virtual_cbs/native_Rmodified.pdb
 
 #python add_fakeCB.py
 
 #generate sequence
 cp proteins_list.txt sequences/
-cp native_structures_pdbs_with_virtual_cbs/nativeRmodified.pdb sequences/
+cp native_structures_pdbs_with_virtual_cbs/native.pdb sequences/
 cd sequences/
 
 # Build the sequence for native.pdb
