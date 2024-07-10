@@ -1,5 +1,5 @@
-/Users/eduardo/Downloads/mayachemtools/bin/ModifyPDBFiles.pl --overwrite --mode RenumberResidues --ResidueNumberMode Sequential ACCUGAAAAUAACCCAUGU_modified.pdb 
-cp  ACCUGAAAAUAACCCAUGU_modifiedRenumberResidues.pdb ACCUGAAAAUAACCCAUGU_modified.pdb 
+/Users/eduardo/Downloads/mayachemtools/bin/ModifyPDBFiles.pl --overwrite --mode RenumberResidues --ResidueNumberMode Sequential 68_ACAUAAUGAGCCCCCAUGU_1_modified.pdb 
+cp  68_ACAUAAUGAGCCCCCAUGU_1_modifiedRenumberResidues.pdb 68_ACAUAAUGAGCCCCCAUGU_1_modified.pdb 
 
-/Users/eduardo/Downloads/mayachemtools/bin/ModifyPDBFiles.pl --overwrite --mode RenumberResidues --ResidueNumberMode Sequential ACCUGAAAAUAACCCAUGU_Rmodified.pdb 
-cp ACCUGAAAAUAACCCAUGU_RmodifiedRenumberResidues.pdb ACCUGAAAAUAACCCAUGU_Rmodified.pdb
+/Users/eduardo/Downloads/mayachemtools/bin/ModifyPDBFiles.pl --overwrite --mode RenumberResidues --ResidueNumberMode Sequential 68_ACAUAAUGAGCCCCCAUGU_1_Rmodified.pdb 
+cp 68_ACAUAAUGAGCCCCCAUGU_1_RmodifiedRenumberResidues.pdb 68_ACAUAAUGAGCCCCCAUGU_1_Rmodified.pdb

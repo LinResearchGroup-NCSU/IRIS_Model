@@ -64,7 +64,7 @@ def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, p
                     # Res1 through tm_only, is already in the DNA chain, we only need to control the res2 to
                     # be in the protein chain;
                     # The chain ID varies from one Complex to the other, be careful!!!
-                    if (CPLEX_name == 'ACCUGAAAAUAACCCAUGU'):                       
+                    if (CPLEX_name == '6_AAACGACGUUCACCCAUGU_4'):                       
                         if (res2chain == 'A'):
                             res1type = get_res_type(res_list_entire, res1)
                             res2type = get_res_type(res_list_entire, res2)
@@ -174,4 +174,4 @@ phis_directory = "./phis/"
 decoys_root_directory = "./sequences/"
 
 evaluate_phis_over_training_set("proteins_list_forphi.txt", "phi1_list.txt", decoy_method='CPLEX_randomization', 
-                                max_decoys=1000000, tm_only=False, num_processors=1, CPLEXmodeling=True, CPLEX_name='ACCUGAAAAUAACCCAUGU')
+                                max_decoys=1000000, tm_only=False, num_processors=1, CPLEXmodeling=True, CPLEX_name='6_AAACGACGUUCACCCAUGU_4')
