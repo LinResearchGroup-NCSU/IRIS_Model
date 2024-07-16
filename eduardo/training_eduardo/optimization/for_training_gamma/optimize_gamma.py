@@ -82,7 +82,7 @@ def get_filtered_gamma_B_lamb_P_and_lamb(A, B, half_B, other_half_B, std_half_B,
     
     cutoff_mode = min(cutoff_modes)
     # Hard set a cutoff_mode by looking at the Lamb file itself;
-    cutoff_mode = 25
+    cutoff_mode = 5
 
     print(cutoff_modes)
     print(cutoff_mode)
