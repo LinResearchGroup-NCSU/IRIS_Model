@@ -24,10 +24,10 @@ python buildseq.py native
 bash cmd.cleanSequences.sh native.seq 
 
 #generate modeller whole sequence
-python mapDNAseq_reverse.py rna.seq rna_modeller.seq
+#python mapDNAseq_reverse.py rna.seq rna_modeller.seq
 
 #combine modeller and original protein sequence 
-python combine_DNAPro.py
+#python combine_DNAPro.py
 # Cutoff for determining contacting residues, unit: nm
 export cutoff=1.2
 python find_cm_residues.py native.pdb $cutoff randomize_position_prot.txt randomize_position_RNA.txt
@@ -35,17 +35,21 @@ python find_cm_residues.py native.pdb $cutoff randomize_position_prot.txt random
 rm -r RNA_randomization
 mkdir -p RNA_randomization 
 
-cp randomize_position_RNA.txt native.seq native.decoys RNA_randomization/
+#cp randomize_position_RNA.txt native.seq native.decoys RNA_randomization/
+cp randomize_position_RNA.txt RNA_randomization/
 
 ## Generate decoys for the protein
-#rm -r prot_randomization
-#mkdir -p prot_randomization 
+rm -r prot_randomization
+mkdir -p prot_randomization 
 
-rm -r CPLEX_randomization
-mkdir -p CPLEX_randomization
+
+# xclin note: we need to manually update the CPLEX_randomization/natie_Rmodified.decoys according to the target sequences;
+
+#rm -r CPLEX_randomization
+#mkdir -p CPLEX_randomization
 
 # No need to concatenate because we don't need protein-randomized sequences;
-cp RNA_randomization/native.decoys CPLEX_randomization/native_Rmodified.decoys
+#cp RNA_randomization/native.decoys CPLEX_randomization/native_Rmodified.decoys
 
 cd ../
 
