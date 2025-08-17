@@ -1,6 +1,5 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/LinResearchGroup-NCSU/IRIS_Model/main/logo.png" alt="IRIS Logo" width="300"/>
-</p>
+
+<img width="1024" height="1024" alt="logo" src="https://github.com/user-attachments/assets/d4805560-7998-4b0a-b820-116911161d39" />
 
 
 
