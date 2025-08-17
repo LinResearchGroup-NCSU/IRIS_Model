@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?><Error><Code>AuthenticationFailed</Code><Message>Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
-RequestId:909ad46f-b01e-00d3-308a-0ce993000000
-Time:2025-08-13T19:45:39.2345781Z</Message><AuthenticationErrorDetail>Signed expiry time [Wed, 13 Aug 2025 18:34:12 GMT] must be after signed start time [Wed, 13 Aug 2025 19:45:39 GMT]</AuthenticationErrorDetail></Error>
-![IRIS_logo](https://github.com/user-attachments/assets/4390eb42-758d-4cbe-876e-a7b854b5cee9)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LinResearchGroup-NCSU/IRIS_Model/main/logo.png" alt="IRIS Logo" width="300"/>
+</p>
+
 
 
 ## 🚀 Features
