@@ -56,11 +56,11 @@ Here, we'll train an energy model for the MS2-RNA complex (PDB ID: `2c4q`) as an
 
 #### Step 1: Prepare Input Files
 
-1.  Create a list of PDB IDs for training in `training/proteinList.txt`. Each ID should be on a new line.
+1.  Create a list of PDB IDs for training in `IRIS_Model/training/proteinList.txt`. Each ID should be on a new line.
     ```
     2c4q
     ```
-2.  Place your processed PDB files in the `training/PDBs/` directory.
+2.  Place your processed PDB files in the `IRIS_Model/training/PDBs/` directory.
       * **Protein File**: `{PDB_ID}_modified.pdb` (e.g., `2c4q_modified.pdb`). **Rename protein chain to A**.
       * **RNA File**: `{PDB_ID}_Rmodified.pdb` (e.g., `2c4q_Rmodified.pdb`). **Rename RNA chains to B and C**.
 
@@ -81,27 +81,25 @@ You can customize the model's behavior by editing the following files:
       * **Default**: RNA bases are represented by the **P** atom, and protein residues by the **Cα (CA)** atom.
       * **Advanced**: You can specify **side-chain atoms** for a more detailed interaction model.
 
-  * **Decoy Sequences**: In the `training/optimization/for_bindingE/template/sequences/` directory, the scripts `generate_decoy_seq_prot.py` and `generate_decoy_seq_RNA.py` generate decoy sequences for training.
+  * **Decoy Sequences**: In the `IRIS_Model/training/optimization/for_bindingE/template/sequences/` directory, the scripts `generate_decoy_seq_prot.py` and `generate_decoy_seq_RNA.py` generate decoy sequences for training.
 
       * **Default**: 0 protein decoys and 10,000 RNA decoys. These values were found to be robust in our manuscript.
 
-  * **Eigenvalue Cutoff**: In `training/optimization/for_training_gamma/optimize_gamma.py`, set `cutoff_mode`.
+  * **Eigenvalue Cutoff**: In `IRIS_Model/training/optimization/for_training_gamma/optimize_gamma.py`, set `cutoff_mode`.
 
       * **Example**: `cutoff_mode = 25` retains the top 25 eigenvalues and replaces all others with the 25th eigenvalue. This choice depends on the lambda values found in `.../gammas/randomized_decoy/native_trainSetFiles_..._lamb`.
 
 #### Step 4: Locate and Visualize Output
 
   * **Primary Output**: The trained energy model is saved at:
-    `training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered`
+    `IRIS_Model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered`
 
   * **Visualization**: To generate plots of the energy matrix:
 
     ```bash
-    cd training/optimization/for_training_gamma/
-    python visualize.py
+    cd IRIS_Model/visualize/
     ```
-
-    The plots will be saved in the `visualize/` subdirectory.
+    There is a jupyter notebook for visualization.
 
 ### 2\. Predicting Protein-RNA Binding Energies
 
@@ -109,15 +107,15 @@ Once the model is trained, you can use it to predict binding energies for a set 
 
 #### Step 1: Prepare Input Files
 
-1.  Place the testing PDB file(s) in `testing/PDBs/`.
-2.  List your testing RNA sequences (one per line) in `testing/sequences/rna.seq`.
+1.  Place the testing PDB file(s) in `IRIS_Model/testing/PDBs/`.
+2.  List your testing RNA sequences (one per line) in `IRIS_Model/testing/sequences/rna.seq`.
 
 #### Step 2: Generate Feature Vectors (Φ values)
 
-Navigate to the `testing/` directory and run the test script with the target PDB ID.
+Navigate to the `IRIS_Model/testing/` directory and run the test script with the target PDB ID.
 
 ```bash
-cd testing/
+cd IRIS_Model/testing/
 bash test.sh 2c4q
 ```
 
