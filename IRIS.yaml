@@ -1,0 +1,15 @@
+name: IRIS
+channels:
+  - salilab       
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - biopython=1.79
+  - numpy=1.21
+  - joblib=1.2.0
+  - mdtraj=1.9.7
+  - modeller     
+  - pip
+  - pip:
+      - matplotlib==3.5.2
