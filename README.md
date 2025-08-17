@@ -1,5 +1,15 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LinResearchGroup-NCSU/IRIS_Model/main/IRIS_logo.png" alt="IRIS Logo" width="300"/>
+</p>
 
-<img width="756" height="820" alt="image (1)" src="https://github.com/user-attachments/assets/bd6eef3c-fa58-4298-af80-5fb28f5875a7" />
+<h1 align="center">IRIS</h1>
+<p align="center"><b>Integrative RNA–Protein Interaction Prediction Informed by Structure and Sequence</b></p>
+
+<p align="center">
+  <a href="https://github.com/LinResearchGroup-NCSU/IRIS_Model"><img src="https://img.shields.io/badge/python-3.8-blue.svg" alt="Python 3.8"></a>
+  <a href="https://github.com/LinResearchGroup-NCSU/IRIS_Model/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+</p>
+
 
 
 ## 🚀 Features
