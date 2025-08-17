@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><Error><Code>AuthenticationFailed</Code><Message>Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
+RequestId:909ad46f-b01e-00d3-308a-0ce993000000
+Time:2025-08-13T19:45:39.2345781Z</Message><AuthenticationErrorDetail>Signed expiry time [Wed, 13 Aug 2025 18:34:12 GMT] must be after signed start time [Wed, 13 Aug 2025 19:45:39 GMT]</AuthenticationErrorDetail></Error>
+![IRIS_logo](https://github.com/user-attachments/assets/4390eb42-758d-4cbe-876e-a7b854b5cee9)
+
+
 ## 🚀 Features
 
   - **Train & Visualize**: Easily train and visualize IRIS energy models for your protein–RNA complexes of interest.
@@ -119,7 +125,7 @@ cd IRIS_Model/testing/
 bash test.sh 2c4q
 ```
 
-This generates the Φ feature vectors in `testing/phis/`.
+This generates the Φ feature vectors in `IRIS_Model/testing/phis/`.
 
 #### Step 3: Calculate Binding Energy
 
@@ -127,9 +133,9 @@ This generates the Φ feature vectors in `testing/phis/`.
 
     ```bash
     # Note: Run these commands from the project's root directory
-    cp training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered results_phi_gamma/
+    cp IRIS_Model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered results_phi_gamma/
 
-    cp testing/phis/phi_pairwise_contact_well_native_decoys_CPLEX_randomization_-9.5_9.5_0.7_10 results_phi_gamma/
+    cp IRIS_Model/testing/phis/phi_pairwise_contact_well_native_decoys_CPLEX_randomization_-9.5_9.5_0.7_10 results_phi_gamma/
     ```
 
 2.  Run the final calculation script:
@@ -145,7 +151,7 @@ This generates the Φ feature vectors in `testing/phis/`.
 
 ## 📚 Supplementary Materials
 
-  - **Trained Energy Models**: Ready-to-use models from our manuscript.
+  - **Trained Energy Models**: Trained models from our manuscript.
   - **Raw Data**: The raw data used for training and validation.
   - **Processed Published Models**: Processed versions of models from related publications.
 
