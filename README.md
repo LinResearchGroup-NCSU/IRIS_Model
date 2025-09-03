@@ -1,4 +1,4 @@
-<p align="center">
+<!-- <p align="center">
   <img src="https://github.com/LinResearchGroup-NCSU/IRIS_Model/blob/main/IRIS_logo.png" alt="IRIS Logo" width="300"/>
 </p>
 
@@ -8,7 +8,8 @@
   <a href="https://github.com/LinResearchGroup-NCSU/IRIS_Model"><img src="https://img.shields.io/badge/python-3.8-blue.svg" alt="Python 3.8"></a>
   <a href="https://github.com/LinResearchGroup-NCSU/IRIS_Model/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
-
+-->
+# IRIS: Integrative RNA-Protein Interaction Prediction Informed by Structure and Sequence
 
 
 ## 🚀 Features
