@@ -176,4 +176,4 @@ If you use IRIS in your research, please cite our manuscript.
 
 ## 📞 Contact
 
-For questions, bug reports, or support, please open an issue on this GitHub repository or contact the [Lin Research Group](https://github.com/LinResearchGroup-NCSU).
+For questions, bug reports, or support, please open an issue on this GitHub repository or contact the [Lin Research Group](https://lingroup.wordpress.ncsu.edu/).
