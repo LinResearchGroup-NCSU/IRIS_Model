@@ -14,7 +14,7 @@
 
 ## 🚀 Features
 
-  - **Train & Visualize**: Easily train IRIS energy models for your protein–RNA complexes of interest.
+  - **Train**: Easily train IRIS energy models for your protein–RNA complexes of interest.
   - **Predict Binding Energies**: Generate feature vectors (Φ values) and calculate binding energies ($E = \\gamma \\Phi$) for target sequences.
 
 -----
