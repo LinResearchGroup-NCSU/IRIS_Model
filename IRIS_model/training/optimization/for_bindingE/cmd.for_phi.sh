@@ -19,7 +19,7 @@ do
     rm -r $f
     cp -r template $f
     # update the cmd.optimization.sh file the residue ID of peptide and PDB id of the corresponding PDB folder;
-    gsed "s/PDBID/$f/g; s/PROT_CHAIN_ID/$prot_chainID/g" template_cmd.optimization.sh > $f/cmd.optimization.sh
+    sed "s/PDBID/$f/g; s/PROT_CHAIN_ID/$prot_chainID/g" template_cmd.optimization.sh > $f/cmd.optimization.sh
 
     cd $f/
     

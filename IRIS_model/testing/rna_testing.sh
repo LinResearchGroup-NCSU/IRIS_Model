@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# grep -rlZ "sed" . | xargs -0 sed -i 's/sed/sed/g'
+
 export PDBid=$1
 
 protChain="A"
@@ -60,5 +62,5 @@ tot_resnum=`cat tmp.txt | awk 'END{print $6}'`
 python create_tms.py sequences/RNA_randomization/randomize_position_RNA.txt $tot_resnum
 
 # Substitute the placeholders with actual PDBid and protChain in the template
-gsed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
+sed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
 python evaluate_phi.py

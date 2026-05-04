@@ -12,24 +12,20 @@ import sys
 
 import numpy as np
 
-
 sys.path.append('../../../common_functions')
 from common_function import *
 
 ################################################
-
 
 def my_lt_range(start, end, step):
     while start < end:
         yield start
         start += step
 
-
 def my_le_range(start, end, step):
     while start <= end:
         yield start
         start += step
-
 
 def RepresentsFloat(s):
     try:
@@ -37,8 +33,8 @@ def RepresentsFloat(s):
         return True
     except ValueError:
         return False
-###########################################
 
+###########################################
 
 def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, parameter_list, CPLEXmodeling=False, CPLEX_name='IDK'):
 
@@ -53,18 +49,13 @@ def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, p
         res1index = get_local_index(res1)
         res1chain = get_chain(res1)
 
-        # For CPLEX modeling, we only need the sequence in the DNA;
         if CPLEXmodeling:
             if (res1 in res_list_tmonly):
                 for res2 in get_neighbors_within_radius(neighbor_list, res1, r_max + 2.0):
                     res2index = get_local_index(res2)
                     res2chain = get_chain(res2)
                     res2globalindex = get_global_index(res_list_entire, res2)
-                    # Here, we strictly consider only between the DNA chain and the protein chain:
-                    # Res1 through tm_only, is already in the DNA chain, we only need to control the res2 to
-                    # be in the protein chain;
-                    # The chain ID varies from one Complex to the other, be careful!!!
-                    if (CPLEX_name == '2bu1'):                       
+                    if (CPLEX_name == '2bu1'):
                         if (res2chain == 'A'):
                             res1type = get_res_type(res_list_entire, res1)
                             res2type = get_res_type(res_list_entire, res2)
@@ -77,9 +68,7 @@ def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, p
 
             else:
                 continue
-
         else:
-            # This is only for the AWSEM protein treatment, not related here;
             for res2 in get_neighbors_within_radius(neighbor_list, res1, r_max + 2.0):
                 res2index = get_local_index(res2)
                 res2chain = get_chain(res2)
@@ -101,71 +90,61 @@ def phi_pairwise_contact_well(res_list_tmonly, res_list_entire, neighbor_list, p
 
     return phis_to_return
 
+###########################################
 
-def evaluate_phis_over_training_set(training_set_file, phi_list_file_name, decoy_method, max_decoys, tm_only=False, num_processors=1, CPLEXmodeling=False, CPLEX_name='IDK'):
+def evaluate_phis_over_training_set(training_set_file, phi_list_file_name, decoy_method, tm_only=False, num_processors=1, CPLEXmodeling=False, CPLEX_name='IDK'):
     phi_list = read_phi_list(phi_list_file_name)
     print(phi_list)
     training_set = read_column_from_file(training_set_file, 1)
     print(training_set)
 
     # for protein in training_set:
-    evaluate_phis_for_protein(training_set, phi_list, decoy_method, max_decoys, tm_only=tm_only, CPLEXmodeling=CPLEXmodeling, CPLEX_name=CPLEX_name)
+    evaluate_phis_for_protein(training_set, phi_list, decoy_method, tm_only=tm_only, CPLEXmodeling=CPLEXmodeling, CPLEX_name=CPLEX_name)
 
-
-def evaluate_phis_for_protein(training_set, phi_list, decoy_method, max_decoys, tm_only=False, CPLEXmodeling=False, CPLEX_name='IDK'):
-    # Because there is only one protein in the training set; if there are multiple proteins, the script could be different!
+def evaluate_phis_for_protein(training_set, phi_list, decoy_method, tm_only=False, CPLEXmodeling=False, CPLEX_name='IDK'):
     protein = training_set[0]
 
     print(native_structures_directory)
     structure = parse_pdb(os.path.join(native_structures_directory, protein))
 
-    # Two lists of res_list, one for the peptide (selected by the .tm file), one for the entire list
     res_list_tmonly = get_res_list(structure, tm_only=True)
     res_list_entire = get_res_list(structure, tm_only=False)
-    # Here, we are going to take every residues close to the pMHC peptide, so there is no restriction (tm_only) on what is going to be taken;
     neighbor_list = get_neighbor_list(structure, tm_only=False)
-
     sequence = get_sequence_from_structure(structure)
 
-    # Before the iteration, we need to store the native res_list_tmonly and res_list_entire; because after mutation for each phi, both of them 
-    # are changed afterwards to the decoy sequences; but we still need to evaluate the native phi for different phis;
     res_list_tmonly_native = res_list_tmonly
     res_list_entire_native = res_list_entire
+
+    # Dynamically calculate max_decoys based on total decoys present in CPLEX_randomization folder
+    decoy_file_path = os.path.join(decoys_root_directory, f"{decoy_method}/{protein}.decoys")
+    if os.path.exists(decoy_file_path):
+        decoy_sequences = read_decoy_sequences(decoy_file_path)
+        max_decoys = len(decoy_sequences)
+    else:
+        max_decoys = 0
 
     for phi, parameters in phi_list:
 
         phi = globals()[phi]
         parameters_string = get_parameters_string(parameters)
-        # check to see if the decoys are already generated
-#        number_of_lines_in_file = get_number_of_lines_in_file(os.path.join(
-#            phis_directory, "%s_%s_native_%s" % (phi.__name__, protein, parameters_string)))
-#        if not number_of_lines_in_file >= 1:
-        output_file = open(os.path.join(phis_directory, "%s_%s_native_%s" % (
-            phi.__name__, protein, parameters_string)), 'w')
+
+        # Write native phi
+        output_file = open(os.path.join(phis_directory, f"{phi.__name__}_{protein}_native_{parameters_string}"), 'w')
         phis_to_write = phi(res_list_tmonly_native, res_list_entire_native,
                             neighbor_list, parameters, CPLEXmodeling=CPLEXmodeling, CPLEX_name=CPLEX_name)
-        output_file.write(str(phis_to_write).strip(
-            '[]').replace(',', '') + '\n')
+        output_file.write(str(phis_to_write).strip('[]').replace(',', '') + '\n')
         output_file.close()
-#        number_of_lines_in_file = get_number_of_lines_in_file(os.path.join(
-#            phis_directory, "%s_%s_decoys_%s_%s" % (phi.__name__, protein, decoy_method, parameters_string)))
-#        if not number_of_lines_in_file >= max_decoys:
-        output_file = open(os.path.join(phis_directory, "%s_%s_decoys_%s_%s" % (
-            phi.__name__, protein, decoy_method, parameters_string)), 'w')
-        decoy_sequences = read_decoy_sequences(os.path.join(
-            decoys_root_directory, "%s/%s.decoys" % (decoy_method, protein)))
+
+        # Write decoy phis
+        output_file = open(os.path.join(phis_directory, f"{phi.__name__}_{protein}_decoys_{decoy_method}_{parameters_string}"), 'w')
         for i_decoy, decoy_sequence in enumerate(decoy_sequences):
             if i_decoy >= max_decoys:
                 break
             mutate_whole_sequence(res_list_entire, decoy_sequence)
-            # Note after this mutation, both res_list_entire and res_list_tmonly have been changed accordingly, because this is a change by reference;
-
             phis_to_write = phi(res_list_tmonly, res_list_entire,
                                 neighbor_list, parameters, CPLEXmodeling=CPLEXmodeling, CPLEX_name=CPLEX_name)
-            output_file.write(str(phis_to_write).strip(
-                '[]').replace(',', ' ') + '\n')
+            output_file.write(str(phis_to_write).strip('[]').replace(',', ' ') + '\n')
         output_file.close()
-
 
 ############################################
 
@@ -173,5 +152,9 @@ native_structures_directory = "./native_structures_pdbs_with_virtual_cbs/"
 phis_directory = "./phis/"
 decoys_root_directory = "./sequences/"
 
-evaluate_phis_over_training_set("proteins_list.txt", "phi1_list.txt", decoy_method='CPLEX_randomization', 
-                                max_decoys=20000, tm_only=False, num_processors=1, CPLEXmodeling=True, CPLEX_name='2bu1')
+# Call script, max_decoys will be determined automatically based on available decoys
+evaluate_phis_over_training_set(
+    "proteins_list.txt", "phi1_list.txt",
+    decoy_method='CPLEX_randomization', 
+    tm_only=False, num_processors=1, CPLEXmodeling=True, CPLEX_name='2bu1'
+)

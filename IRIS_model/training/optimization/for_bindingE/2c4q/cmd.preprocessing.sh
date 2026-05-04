@@ -30,7 +30,7 @@ bash for_gBinder_sequences.sh
 
 # Find the indices of contacting protein-RNA residues
 # Adjust cutoff for determining contacting residues (in nm)
-export cutoff=1.50  # Adjusted for hydrogen bonding & stacking interactions
+export cutoff=1.2  # Adjusted for hydrogen bonding & stacking interactions
 
 python find_cm_residues.py native.pdb $cutoff randomize_position_prot.txt randomize_position_RNA.txt
 
@@ -65,5 +65,5 @@ tot_resnum=$(awk 'END{print $6}' tmp.txt)
 python create_tms.py sequences/RNA_randomization/randomize_position_RNA.txt $tot_resnum
 
 # Generate and run evaluation script
-gsed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
+sed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
 python evaluate_phi.py

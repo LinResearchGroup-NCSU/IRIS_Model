@@ -57,6 +57,6 @@ grep "CA\|O5'" native_structures_pdbs_with_virtual_cbs/native_Rmodified.pdb > tm
 tot_resnum=`cat tmp.txt | awk 'END{print $6}'`
 python create_tms.py sequences/RNA_randomization/randomize_position_RNA.txt $tot_resnum
 
-gsed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
+sed "s/CPLEX_NAME/$PDBid/g; s/PROT_CHAIN/$protChain/g" template_evaluate_phi.py > evaluate_phi.py
 python evaluate_phi.py
 

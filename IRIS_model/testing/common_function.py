@@ -12,8 +12,10 @@ import random
 
 # For Biopython
 from Bio.PDB import *
-from Bio.Data.PDBData import protein_letters_3to1, protein_letters_1to3
-
+# from Bio.Data.PDBData import protein_letters_3to1, protein_letters_1to3
+# from Bio.Data.SCOPData import protein_letters_3to1, protein_letters_1to3
+from Bio.Data.SCOPData import protein_letters_3to1
+protein_letters_1to3 = {v: k for k, v in protein_letters_3to1.items()}
 
 
 ####################################################################################
@@ -500,4 +502,3 @@ def read_all_gammas(phi_list_file_name, training_set_file, training_decoy_method
         return individual_gammas, individual_confidence_lower, individual_confidence_upper
     else:
         return individual_gammas
-
