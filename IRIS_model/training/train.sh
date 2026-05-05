@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# sed -i 's/\r//' proteinList.txt
-# sed -i -e '$a\' proteinlist.txt
+sed -i 's/\r//' proteinList.txt
+sed -i -e '$a\' proteinlist.txt
 
 # grep -rlZ "sed" . | xargs -0 sed -i 's/\bsed\b/gsed/g'
 
