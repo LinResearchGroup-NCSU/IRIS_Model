@@ -43,13 +43,15 @@ bash Miniconda3-latest-Linux-x86_64.sh
     cd IRIS_Model
     ```
 
-2.  **Create and Activate the Conda Environment**:
-    This command creates a new environment named `IRIS` with all the required dependencies listed in `IRIS.yaml`.
+2. **Create and Activate the Conda Environment**:
 
-    ```bash
-    conda env create -f IRIS.yaml -n IRIS
-    conda activate IRIS
-    ```
+   This command creates a new environment named `IRIS` with all the required dependencies listed in `IRIS.yaml`.
+
+   ```bash
+   conda env create -f IRIS.yaml -n IRIS
+   conda activate IRIS
+
+Note: MODELLER requires a license key during installation. You can request an academic license key from the official MODELLER website: https://salilab.org/modeller/
 
 3.  **Make Scripts Executable**:
 
@@ -87,7 +89,6 @@ Here, we'll train an energy model for the MS2-RNA complex (PDB ID: `2c4q`) as an
 1.  Create a list of PDB IDs for training in `IRIS_Model/training/proteinList.txt`. Each ID should be on a new line.
     ```
     2c4q
-    
     ```
 2.  Place your processed PDB files in the `IRIS_Model/training/PDBs/` directory.
       * **Protein File**: `{PDB_ID}_modified.pdb` (e.g., `2c4q_modified.pdb`). **Rename protein chain to A**.
@@ -98,6 +99,7 @@ Here, we'll train an energy model for the MS2-RNA complex (PDB ID: `2c4q`) as an
 Execute the main training script. This will perform the optimization and generate the energy model ($\\gamma$ values).
 
 ```bash
+cd IRIS_model/training
 bash train.sh
 ```
 
@@ -110,18 +112,18 @@ You can customize the model's behavior by editing the following files:
       * **Default**: RNA bases are represented by the **P** atom, and protein residues by the **Cα (CA)** atom.
       * **Advanced**: You can specify **side-chain atoms** for a more detailed interaction model.
 
-  * **Decoy Sequences**: In the `IRIS_Model/training/optimization/for_bindingE/template/sequences/` directory, the scripts `generate_decoy_seq_prot.py` and `generate_decoy_seq_RNA.py` generate decoy sequences for training.
+  * **Decoy Sequences**: In the `IRIS_model/training/optimization/for_bindingE/template/sequences/` directory, the scripts `generate_decoy_seq_prot.py` and `generate_decoy_seq_RNA.py` generate decoy sequences for training.
 
       * **Default**: 0 protein decoys and 10,000 RNA decoys. 
 
-  * **Eigenvalue Cutoff**: In `IRIS_Model/training/optimization/for_training_gamma/optimize_gamma.py`, set `cutoff_mode`.
+  * **Eigenvalue Cutoff**: In `IRIS_model/training/optimization/for_training_gamma/optimize_gamma.py`, set `cutoff_mode`.
 
       * **Example**: `cutoff_mode = 25` retains the top 25 eigenvalues and replaces all others with the 25th eigenvalue. This choice depends on the lambda values found in `.../gammas/randomized_decoy/native_trainSetFiles_..._lamb`.
 
 #### Step 4: Locate Output
 
   * **Primary Output**: The trained energy model is saved at:
-    `IRIS_Model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered`
+    `IRIS_model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered`
 
 ### 2\. Predicting Protein-RNA Binding Energies
 
@@ -129,19 +131,19 @@ Once the model is trained, you can use it to predict binding energies for a set 
 
 #### Step 1: Prepare Input Files
 
-1.  Place the testing PDB file(s) in `IRIS_Model/testing/PDBs/`.
-2.  List your testing RNA sequences (one per line) in `IRIS_Model/testing/sequences/rna.seq`.
+1.  Place the testing PDB file(s) in `IRIS_model/testing/PDBs/`.
+2.  List your testing RNA sequences (one per line) in `IRIS_model/testing/sequences/rna.seq`.
 
 #### Step 2: Generate Feature Vectors (Φ values)
 
-Navigate to the `IRIS_Model/testing/` directory and run the test script with the target PDB ID.
+Navigate to the `IRIS_model/testing/` directory and run the test script with the target PDB ID.
 
 ```bash
-cd IRIS_Model/testing/
+cd IRIS_model/testing/
 bash rna_testing.sh 2c4q
 ```
 
-This generates the testing Φ feature vectors in `IRIS_Model/testing/phis/phi_pairwise_contact_well_native_Rmodified_decoys_CPLEX_randomization_-9.5_9.5_0.7_10`.
+This generates the testing Φ feature vectors in `IRIS_model/testing/phis/phi_pairwise_contact_well_native_Rmodified_decoys_CPLEX_randomization_-9.5_9.5_0.7_10`.
 
 #### Step 3: Calculate Binding Energy
 
@@ -149,16 +151,16 @@ This generates the testing Φ feature vectors in `IRIS_Model/testing/phis/phi_pa
 
     ```bash
     # Note: Run these commands from the project's root directory
-    cp IRIS_Model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered IRIS_Model/energy_calculation/
+    cp IRIS_model/training/optimization/for_training_gamma/gammas/randomized_decoy/native_trainSetFiles_phi_pairwise_contact_well-9.5_9.5_0.7_10_gamma_filtered IRIS_model/energy_calculation/
 
-    cp IRIS_Model/testing/phis/phi_pairwise_contact_well_native_decoys_CPLEX_randomization_-9.5_9.5_0.7_10 IRIS_Model/energy_calculation/
+    cp IRIS_model/testing/phis/phi_pairwise_contact_well_native_decoys_CPLEX_randomization_-9.5_9.5_0.7_10 IRIS_model/energy_calculation/
     ```
 
 2.  Run the final calculation script:
 
     ```bash
-    cd IRIS_Model/energy_calculation/
-    python energy_calculation.py
+    cd IRIS_model/energy_calculation/
+    python calculate_testing_energy.py
     ```
 
 3.  **Final Output**: The predicted binding energies will be in a file named `Energy_mg.txt`, calculated using the equation **E = γΦ**.
