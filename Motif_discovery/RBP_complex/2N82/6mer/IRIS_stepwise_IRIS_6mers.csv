@@ -1,0 +1,181 @@
+Iteration: 1 
+Available 6mers: 1013760 
+Selected motif: AUGACG 
+Mean IRIS score: -29.39854 
+Occurrences: 1056 
+Sequences: 1056 
+
+Iteration: 2 
+Available 6mers: 1002192 
+Selected motif: UGACUG 
+Mean IRIS score: -29.27564 
+Occurrences: 333 
+Sequences: 332 
+
+Iteration: 3 
+Available 6mers: 998844 
+Selected motif: UGACUU 
+Mean IRIS score: -29.03117 
+Occurrences: 341 
+Sequences: 341 
+
+Iteration: 4 
+Available 6mers: 995475 
+Selected motif: AUGACC 
+Mean IRIS score: -28.54916 
+Occurrences: 1122 
+Sequences: 1122 
+
+Iteration: 5 
+Available 6mers: 983508 
+Selected motif: AUGACA 
+Mean IRIS score: -28.42152 
+Occurrences: 1066 
+Sequences: 1065 
+
+Iteration: 6 
+Available 6mers: 971832 
+Selected motif: GACUCG 
+Mean IRIS score: -27.76287 
+Occurrences: 104 
+Sequences: 104 
+
+Iteration: 7 
+Available 6mers: 970872 
+Selected motif: GACUAG 
+Mean IRIS score: -27.66515 
+Occurrences: 104 
+Sequences: 104 
+
+Iteration: 8 
+Available 6mers: 969912 
+Selected motif: GACUAA 
+Mean IRIS score: -27.3236 
+Occurrences: 104 
+Sequences: 104 
+
+Iteration: 9 
+Available 6mers: 968958 
+Selected motif: AUGAAU 
+Mean IRIS score: -27.11211 
+Occurrences: 305 
+Sequences: 304 
+
+Iteration: 10 
+Available 6mers: 965671 
+Selected motif: AUGAUU 
+Mean IRIS score: -27.02207 
+Occurrences: 319 
+Sequences: 319 
+
+Iteration: 11 
+Available 6mers: 962291 
+Selected motif: GACUCA 
+Mean IRIS score: -26.92261 
+Occurrences: 116 
+Sequences: 116 
+
+Iteration: 12 
+Available 6mers: 961205 
+Selected motif: AUGAGU 
+Mean IRIS score: -26.48264 
+Occurrences: 295 
+Sequences: 295 
+
+Iteration: 13 
+Available 6mers: 958029 
+Selected motif: GACUCC 
+Mean IRIS score: -26.48262 
+Occurrences: 122 
+Sequences: 122 
+
+Iteration: 14 
+Available 6mers: 956958 
+Selected motif: GUCAUG 
+Mean IRIS score: -26.46152 
+Occurrences: 324 
+Sequences: 323 
+
+Iteration: 15 
+Available 6mers: 953501 
+Selected motif: GACUAU 
+Mean IRIS score: -26.25609 
+Occurrences: 125 
+Sequences: 125 
+
+Iteration: 16 
+Available 6mers: 952340 
+Selected motif: GACAUG 
+Mean IRIS score: -26.07802 
+Occurrences: 281 
+Sequences: 281 
+
+Iteration: 17 
+Available 6mers: 949257 
+Selected motif: GUUGUG 
+Mean IRIS score: -25.87044 
+Occurrences: 136 
+Sequences: 135 
+
+Iteration: 18 
+Available 6mers: 947933 
+Selected motif: CAUGAA 
+Mean IRIS score: -25.82539 
+Occurrences: 782 
+Sequences: 782 
+
+Iteration: 19 
+Available 6mers: 939091 
+Selected motif: GCCAUG 
+Mean IRIS score: -25.78019 
+Occurrences: 309 
+Sequences: 308 
+
+Iteration: 20 
+Available 6mers: 935726 
+Selected motif: CAUGAU 
+Mean IRIS score: -25.76704 
+Occurrences: 766 
+Sequences: 766 
+
+Iteration: 21 
+Available 6mers: 926940 
+Selected motif: CAUGCC 
+Mean IRIS score: -25.66584 
+Occurrences: 280 
+Sequences: 279 
+
+Iteration: 22 
+Available 6mers: 923941 
+Selected motif: GGAUUG 
+Mean IRIS score: -25.64421 
+Occurrences: 135 
+Sequences: 135 
+
+Iteration: 23 
+Available 6mers: 922615 
+Selected motif: GGAAUG 
+Mean IRIS score: -25.57689 
+Occurrences: 127 
+Sequences: 127 
+
+Iteration: 24 
+Available 6mers: 921297 
+Selected motif: GUCUUG 
+Mean IRIS score: -25.45968 
+Occurrences: 134 
+Sequences: 134 
+
+Iteration: 25 
+Available 6mers: 919978 
+Selected motif: GACUUG 
+Mean IRIS score: -25.3548 
+Occurrences: 81 
+Sequences: 81 
+
+Iteration: 26 
+Available 6mers: 919142 
+Selected motif: GUGGCA 
+Mean IRIS score: -25.29913 
+Occurrences: 1054 
+Sequences: 1053 

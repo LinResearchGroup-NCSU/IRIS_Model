@@ -1,0 +1,413 @@
+"0","```r
+###############################################################
+## Generate complete 5mer threading library
+##
+## Input:
+##5HO41FXL
+## native.seq
+##      Full native sequence
+##      Protein = uppercase
+##      RNA = lowercase
+##
+## randomize_position_RNA.txt
+##      Positions where RNA randomization is allowed
+##
+## Rules:
+##
+## - Only continuous position blocks are threaded
+## - Blocks <5 residues remain native
+## - Blocks >=5 residues use sliding 5mer windows
+## - Every possible RNA 5mer (4^5 = 1024) is generated
+## - Threaded kmers remain lowercase RNA
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+\"/Users/eduardo/EC_Documents/Lin_lab/RNA_Protein/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code\"
+)
+
+
+native_file <- \"native.seq\"
+
+position_file <- \"randomize_position_RNA.txt\"
+
+output_file <- \"kmer_library.txt\"
+
+
+
+###############################################################
+## Read native sequence
+###############################################################
+
+lines <- readLines(native_file)
+
+
+# Remove FASTA header if present
+
+lines <- lines[
+    !grepl(\"^>\", lines)
+]
+
+
+native_seq <- paste0(
+    lines,
+    collapse=\"\"
+)
+
+
+chars <- strsplit(
+    native_seq,
+    \"\"
+)[[1]]
+
+
+seq_length <- length(chars)
+
+
+cat(
+\"Native length:\",
+seq_length,
+\"\n\"
+)
+```"
+"1","Native length: 117 
+"
+"0","```r
+###############################################################
+## Read randomize positions
+###############################################################
+
+positions <- scan(
+    position_file,
+    what=integer(),
+    quiet=TRUE
+)
+
+
+positions <- sort(
+    unique(positions)
+)
+
+
+if(length(positions) == 0)
+{
+    stop(
+        \"No valid positions found in randomize_position_RNA.txt\"
+    )
+}
+
+
+cat(
+\"Randomized positions:\",
+length(positions),
+\"\n\"
+)
+```"
+"1","Randomized positions: 18 
+"
+"0","```r
+###############################################################
+## Find continuous position blocks
+###############################################################
+
+find_blocks <- function(pos)
+{
+
+    blocks <- list()
+
+    start <- pos[1]
+
+    previous <- pos[1]
+
+
+    counter <- 1
+
+
+    if(length(pos) == 1)
+    {
+        blocks[[1]] <- c(
+            start,
+            previous
+        )
+
+        return(blocks)
+    }
+
+
+    for(i in 2:length(pos))
+    {
+
+        if(pos[i] == previous + 1)
+        {
+
+            previous <- pos[i]
+
+        }
+        else
+        {
+
+            blocks[[counter]] <- c(
+                start,
+                previous
+            )
+
+            counter <- counter + 1
+
+            start <- pos[i]
+
+            previous <- pos[i]
+
+        }
+
+    }
+
+
+    blocks[[counter]] <- c(
+        start,
+        previous
+    )
+
+
+    return(blocks)
+
+}
+
+
+blocks <- find_blocks(
+    positions
+)
+
+
+
+cat(
+\"\nContinuous blocks:\n\"
+)
+```"
+"1","
+Continuous blocks:
+"
+"0","```r
+for(block in blocks)
+{
+
+    cat(
+        block[1],
+        \"-\",
+        block[2],
+        \"length:\",
+        block[2]-block[1]+1,
+        \"\n\"
+    )
+
+}
+```"
+"1","97 - 114 length: 18 
+"
+"0","```r
+###############################################################
+## Generate all possible RNA 5mers
+###############################################################
+
+# Lowercase RNA alphabet
+bases <- c(
+    \"a\",
+    \"c\",
+    \"g\",
+    \"u\"
+)
+
+
+all_5mers <- apply(
+    expand.grid(
+        bases,
+        bases,
+        bases,
+        bases,
+        bases,
+        stringsAsFactors=FALSE
+    ),
+    1,
+    paste0,
+    collapse=\"\"
+)
+
+
+
+cat(
+\"\nTotal 5mers:\",
+length(all_5mers),
+\"\n\"
+)
+```"
+"1","
+Total 5mers: 1024 
+"
+"0","```r
+###############################################################
+## Thread 5mers
+###############################################################
+
+library <- character()
+
+
+
+for(block in blocks)
+{
+
+
+    block_start <- block[1]
+
+    block_end <- block[2]
+
+
+    block_length <- block_end-block_start+1
+
+
+
+    ###########################################################
+    ## Ignore short regions
+    ###########################################################
+
+    if(block_length < 5)
+    {
+
+        cat(
+            \"Skipping block\",
+            block_start,
+            \"-\",
+            block_end,
+            \"(length <5)\n\"
+        )
+
+        next
+
+    }
+
+
+
+    ###########################################################
+    ## Sliding 5mer windows
+    ###########################################################
+
+    for(start in block_start:(block_end-4))
+    {
+
+
+        end <- start + 4
+
+
+        cat(
+            \"Threading positions\",
+            start,
+            \"-\",
+            end,
+            \"\n\"
+        )
+
+
+
+        for(kmer in all_5mers)
+        {
+
+
+            new_sequence <- chars
+
+
+            replacement <- strsplit(
+                kmer,
+                \"\"
+            )[[1]]
+
+
+            # Replace only the 5mer region
+            # with lowercase RNA kmer
+
+            new_sequence[start:end] <- replacement
+
+
+
+            library <- c(
+                library,
+                paste0(
+                    new_sequence,
+                    collapse=\"\"
+                )
+            )
+
+        }
+
+    }
+
+}
+```"
+"1","Threading positions 97 - 101 
+Threading positions 98 - 102 
+Threading positions 99 - 103 
+Threading positions 100 - 104 
+Threading positions 101 - 105 
+Threading positions 102 - 106 
+Threading positions 103 - 107 
+Threading positions 104 - 108 
+Threading positions 105 - 109 
+Threading positions 106 - 110 
+Threading positions 107 - 111 
+Threading positions 108 - 112 
+Threading positions 109 - 113 
+Threading positions 110 - 114 
+"
+"0","```r
+###############################################################
+## Remove duplicates
+###############################################################
+
+library <- unique(
+    library
+)
+
+
+
+###############################################################
+## Write output
+###############################################################
+
+writeLines(
+    library,
+    output_file
+)
+
+
+
+###############################################################
+## Summary
+###############################################################
+
+cat(
+\"\nFinished\n\"
+)
+```"
+"1","
+Finished
+"
+"0","```r
+cat(
+\"Generated sequences:\",
+length(library),
+\"\n\"
+)
+```"
+"1","Generated sequences: 11008 
+"
+"0","```r
+cat(
+\"Output file:\",
+output_file,
+\"\n\"
+)
+```"
+"1","Output file: kmer_library.txt 
+"

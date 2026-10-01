@@ -1,0 +1,580 @@
+"0","```r
+###############################################################
+## RBNS Stepwise R-1 -> Van Nostrand 2017 Figure 2A Motif Logo
+##
+## Implements:
+##
+## - 5mer only
+## - Highest stepwise R-1 kmer as reference
+## - RBNS four alignment rules
+## - Reject non-aligning kmers
+## - Generate PWM weighted by stepwise R-1
+##
+###############################################################
+
+library(tidyverse)
+library(ggseqlogo)
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+input_file <- \"/Users/eduardo/EC_Documents/Lin_lab/RNA_Protein/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/TARDBP.csv\"
+
+output_prefix <- \"TARDBP\"
+
+
+###############################################################
+## Read CSV
+###############################################################
+
+raw <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = c(\"\", \"NA\")
+)
+
+
+
+###############################################################
+## Parse CSV into kmer table
+###############################################################
+
+kmers <- data.frame(
+    sequence=character(),
+    weight=numeric(),
+    stringsAsFactors=FALSE
+)
+
+
+for(i in seq_len(nrow(raw)))
+{
+
+    seq <- trimws(as.character(raw[i,1]))
+    wt  <- trimws(as.character(raw[i,2]))
+
+
+    if(is.na(seq) || seq==\"\")
+        next
+
+
+    if(!is.na(wt) && wt!=\"\")
+    {
+
+        kmers <- rbind(
+            kmers,
+            data.frame(
+                sequence=chartr(\"T\",\"U\",seq),
+                weight=as.numeric(wt)
+            )
+        )
+
+    }
+
+}
+
+
+
+###############################################################
+## Keep only 5mers
+###############################################################
+
+kmers <- kmers %>%
+    filter(
+        nchar(sequence)==5
+    ) %>%
+    arrange(desc(weight))
+
+
+cat(
+    \"\nNumber of 5mers:\",
+    nrow(kmers),
+    \"\n\"
+)
+```"
+"1","
+Number of 5mers: 4 
+"
+"0","```r
+###############################################################
+## RBNS alignment rules (Van Nostrand 2017)
+###############################################################
+
+rbns_alignment <- function(seq, ref)
+{
+
+    s <- strsplit(seq,\"\")[[1]]
+    r <- strsplit(ref,\"\")[[1]]
+
+    ###########################################################
+    ## Rule 1
+    ## +/-1 offset
+    ## 0 mismatches among 4 overlaps
+    ###########################################################
+
+    for(offset in c(-1,1))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos>=1 && pos<=5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i]!=r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap==4 && mismatches==0)
+            return(offset)
+
+    }
+
+
+    ###########################################################
+    ## Rule 2
+    ## +/-1 offset
+    ## exactly 1 mismatch
+    ###########################################################
+
+    for(offset in c(-1,1))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos>=1 && pos<=5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i]!=r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap==4 && mismatches==1)
+            return(offset)
+
+    }
+
+
+    ###########################################################
+    ## Rule 3
+    ## no offset
+    ## exactly one mismatch
+    ###########################################################
+
+    if(sum(s!=r)==1)
+        return(0)
+
+
+    ###########################################################
+    ## Rule 4
+    ## +/-2 offset
+    ## 0 mismatches among 3 overlaps
+    ###########################################################
+
+    for(offset in c(-2,2))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos>=1 && pos<=5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i]!=r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap==3 && mismatches==0)
+            return(offset)
+
+    }
+
+    return(NA)
+
+}
+
+
+
+###############################################################
+## Select reference kmer
+###############################################################
+
+reference <- kmers$sequence[
+    which.max(kmers$weight)
+]
+
+
+cat(
+    \"\nReference kmer:\",
+    reference,
+    \"\n\"
+)
+```"
+"1","
+Reference kmer: GUAUG 
+"
+"0","```r
+###############################################################
+## Align all kmers
+###############################################################
+
+aligned <- data.frame(
+    sequence=reference,
+    weight=max(kmers$weight),
+    offset=0
+)
+
+rejected <- data.frame()
+
+for(i in seq_len(nrow(kmers)))
+{
+
+    if(kmers$sequence[i]==reference)
+        next
+
+    offset <- rbns_alignment(
+        kmers$sequence[i],
+        reference
+    )
+
+    if(is.na(offset))
+    {
+
+        rejected <- rbind(
+            rejected,
+            kmers[i,]
+        )
+
+    }
+    else
+    {
+
+        aligned <- rbind(
+            aligned,
+            data.frame(
+                sequence=kmers$sequence[i],
+                weight=kmers$weight[i],
+                offset=offset
+            )
+        )
+
+    }
+
+}
+
+
+
+write.csv(
+    aligned,
+    paste0(output_prefix,\"_aligned_5mers.csv\"),
+    row.names=FALSE
+)
+
+
+write.csv(
+    rejected,
+    paste0(output_prefix,\"_rejected_5mers.csv\"),
+    row.names=FALSE
+)
+
+
+cat(
+    \"\nAligned kmers:\",
+    nrow(aligned),
+    \"\nRejected kmers:\",
+    nrow(rejected),
+    \"\n\"
+)
+```"
+"1","
+Aligned kmers: 3 
+Rejected kmers: 1 
+"
+"0","```r
+###############################################################
+## Build weighted PWM dynamically
+##
+## Positions are determined from actual aligned offsets
+## (matches Van Nostrand RBNS motif construction)
+###############################################################
+
+alphabet <- c(\"A\",\"C\",\"G\",\"U\")
+
+
+###############################################################
+## Determine occupied motif positions
+##
+## Reference kmer occupies positions 1-5
+## Offset shifts relative to reference
+###############################################################
+
+aligned_positions <- data.frame(
+    start = aligned$offset + 1,
+    end   = aligned$offset + 5
+)
+
+
+motif_start <- min(aligned_positions$start)
+
+motif_end <- max(aligned_positions$end)
+
+
+pwm_length <- motif_end - motif_start + 1
+
+
+
+###############################################################
+## Initialize matrices
+###############################################################
+
+counts <- matrix(
+    0,
+    4,
+    pwm_length,
+    dimnames=list(alphabet,NULL)
+)
+
+missing_weight <- rep(0,pwm_length)
+
+total_weight <- sum(aligned$weight)
+
+
+###############################################################
+## Add weighted kmers
+###############################################################
+
+for(i in seq_len(nrow(aligned)))
+{
+
+    chars <- strsplit(aligned$sequence[i],\"\")[[1]]
+
+    w <- aligned$weight[i]
+
+    offset <- aligned$offset[i]
+
+    occupied <- logical(pwm_length)
+
+    for(j in 1:5)
+    {
+
+        pos <- j + offset - motif_start + 1
+
+        occupied[pos] <- TRUE
+
+        counts[
+            chars[j],
+            pos
+        ] <-
+        counts[
+            chars[j],
+            pos
+        ] + w
+
+    }
+
+    ###########################################################
+    ## Pseudocounts only for empty positions
+    ###########################################################
+
+    for(pos in which(!occupied))
+    {
+
+        counts[,pos] <-
+            counts[,pos] + w*0.25
+
+        missing_weight[pos] <-
+            missing_weight[pos] + w
+
+    }
+
+}
+
+
+
+###############################################################
+## Normalize to PWM
+###############################################################
+
+pwm <- sweep(
+    counts,
+    2,
+    colSums(counts),
+    \"/\"
+)
+
+
+
+###############################################################
+## Trim edges if >75% missing weight
+###############################################################
+
+missing_fraction <-
+    missing_weight / total_weight
+
+keep <-
+    missing_fraction <= 0.75
+
+first <- min(which(keep))
+last <- max(which(keep))
+
+pwm <- pwm[,first:last]
+
+counts <- counts[,first:last]
+
+###############################################################
+## Save PWM
+###############################################################
+
+write.csv(
+    pwm,
+    paste0(
+        output_prefix,
+        \"_RBNS_Figure2A_PWM.csv\"
+    ),
+    quote=FALSE
+)
+
+
+###############################################################
+## Generate sequence logo
+###############################################################
+
+pdf(
+    paste0(
+        output_prefix,
+        \"_RBNS_Figure2A_logo.pdf\"
+    ),
+    width=6,
+    height=2.5
+)
+
+
+print(
+    ggseqlogo(
+        pwm,
+        method=\"bits\"
+    ) +
+    ggtitle(
+        paste0(
+            output_prefix,
+            \" RBNS Figure 2A motif\"
+        )
+    ) +
+    theme_bw(
+        base_size=14
+    )
+)
+
+
+dev.off()
+```"
+"1","null device 
+          1 
+"
+"0","```r
+###############################################################
+## Entropy calculation
+###############################################################
+
+entropy <- function(p)
+{
+    p <- p[p > 0]
+
+    -sum(
+        p * log2(p)
+    )
+}
+
+
+column_entropy <- apply(
+    pwm,
+    2,
+    entropy
+)
+
+
+write.csv(
+    data.frame(
+        Position=seq_along(column_entropy),
+        Entropy=column_entropy
+    ),
+    paste0(
+        output_prefix,
+        \"_entropy.csv\"
+    ),
+    row.names=FALSE
+)
+
+
+
+###############################################################
+## Final report
+###############################################################
+
+cat(
+    \"\nFinal motif based on\",
+    nrow(aligned),
+    \"aligned 5mers\n\"
+)
+```"
+"1","
+Final motif based on 3 aligned 5mers
+"
+"0","```r
+cat(
+    \"Reference:\",
+    reference,
+    \"\n\"
+)
+```"
+"1","Reference: GUAUG 
+"
+"0","```r
+cat(
+    \"PWM length:\",
+    ncol(pwm),
+    \"positions\n\"
+)
+```"
+"1","PWM length: 5 positions
+"
+"0","```r
+cat(
+    \"\nFinished RBNS Figure 2A motif generation\n\"
+)
+```"
+"1","
+Finished RBNS Figure 2A motif generation
+"

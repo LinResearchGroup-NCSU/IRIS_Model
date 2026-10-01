@@ -1,0 +1,349 @@
+"0","```r
+###############################################################
+## RBNS Stepwise R-1 -> Weighted Sequence Logo
+##
+## Reads directly from a CSV formatted like:
+##
+## PUM1,
+## TGTAT,0.228
+## TGTAA,0.225
+## ...
+## PUM1,
+## TGTATA,0.189
+## ...
+##
+###############################################################
+
+library(tidyverse)
+library(Biostrings)
+library(ggseqlogo)
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+input_file <- \"/Users/eduardo/EC_Documents/Lin_lab/RNA_Protein/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/NOVA1.csv\"
+
+output_prefix <- \"NOVA1\"
+
+###############################################################
+## Read CSV
+###############################################################
+
+raw <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = c(\"\", \"NA\")
+)
+
+###############################################################
+## Convert CSV into the original line format
+###############################################################
+
+lines <- c()
+
+for(i in seq_len(nrow(raw)))
+{
+
+    x1 <- trimws(as.character(raw[i,1]))
+    x2 <- trimws(as.character(raw[i,2]))
+
+    if(is.na(x1) || x1==\"\")
+        next
+
+    ## Protein header (e.g. \"PUM1\")
+    if(is.na(x2) || x2==\"\")
+    {
+        lines <- c(lines, x1)
+    }
+    ## Sequence + weight
+    else
+    {
+        lines <- c(lines, paste(x1, x2))
+    }
+
+}
+
+###############################################################
+## Parse file
+###############################################################
+
+all_sets <- list()
+
+for(i in seq_along(lines))
+{
+
+    x <- trimws(lines[i])
+
+    if(x==\"\") next
+
+    fields <- strsplit(x,\"\\s+\")[[1]]
+
+    ## Protein name starts a new block
+    if(length(fields)==1)
+    {
+
+        all_sets[[length(all_sets)+1]] <-
+            data.frame(
+                sequence=character(),
+                weight=numeric(),
+                stringsAsFactors=FALSE
+            )
+
+    }else{
+
+        seq <- chartr(\"T\", \"U\", fields[1])
+        wt  <- as.numeric(fields[2])
+
+        all_sets[[length(all_sets)]] <-
+            rbind(
+                all_sets[[length(all_sets)]],
+                data.frame(
+                    sequence=seq,
+                    weight=wt,
+                    stringsAsFactors=FALSE
+                )
+            )
+
+    }
+
+}
+
+###############################################################
+## Align kmers to highest-scoring kmer
+###############################################################
+
+align_to_reference <- function(df)
+{
+
+    ref <- df$sequence[which.max(df$weight)]
+
+    ref_length <- nchar(ref)
+
+    alphabet <- c(\"A\",\"C\",\"G\",\"U\")
+
+    pwm <- matrix(
+        0,
+        nrow=4,
+        ncol=ref_length,
+        dimnames=list(alphabet,NULL)
+    )
+
+    for(i in seq_len(nrow(df)))
+    {
+
+        s <- df$sequence[i]
+        w <- df$weight[i]
+
+        L <- nchar(s)
+
+        best_score <- -999
+        best_offset <- 0
+
+        #######################################################
+        ## Search every possible alignment
+        #######################################################
+
+        for(offset in -(L-1):(ref_length-1))
+        {
+
+            score <- 0
+            overlap <- 0
+
+            for(j in 1:L)
+            {
+
+                ref_pos <- j + offset
+
+                if(ref_pos < 1) next
+                if(ref_pos > ref_length) next
+
+                overlap <- overlap + 1
+
+                if(substr(s,j,j) ==
+                   substr(ref,ref_pos,ref_pos))
+                    score <- score + 1
+
+            }
+
+            if(overlap >= 3 && score > best_score)
+            {
+                best_score <- score
+                best_offset <- offset
+            }
+
+        }
+
+        #######################################################
+        ## Add weighted counts
+        #######################################################
+
+        for(j in 1:L)
+        {
+
+            ref_pos <- j + best_offset
+
+            if(ref_pos < 1) next
+            if(ref_pos > ref_length) next
+
+            base <- substr(s,j,j)
+
+            pwm[base,ref_pos] <-
+                pwm[base,ref_pos] + w
+
+        }
+
+    }
+
+    ###########################################################
+    ## Normalize columns
+    ###########################################################
+
+    pwm <- sweep(pwm,2,colSums(pwm),\"/\")
+
+    pwm[is.na(pwm)] <- 0.25
+
+    return(pwm)
+
+}
+
+###############################################################
+## Generate individual logos
+###############################################################
+
+for(i in seq_along(all_sets))
+{
+
+    df <- all_sets[[i]]
+
+    L <- unique(nchar(df$sequence))
+
+    pwm <- align_to_reference(df)
+
+    write.csv(
+        pwm,
+        paste0(output_prefix,\"_\",L,\"mer_PWM.csv\"),
+        quote=FALSE
+    )
+
+    pdf(
+        paste0(output_prefix,\"_\",L,\"mer_logo.pdf\"),
+        width=6,
+        height=2.5
+    )
+
+    print(
+
+        ggseqlogo(
+            pwm,
+            method=\"bit\"
+        ) +
+        ggtitle(
+            paste0(
+                output_prefix,
+                \" \",
+                L,
+                \"-mer Stepwise R-1\"
+            )
+        ) +
+        theme_bw(base_size=14)
+
+    )
+
+    dev.off()
+
+}
+
+###############################################################
+## Combined logo (5+6+7mers)
+###############################################################
+
+combined <- bind_rows(all_sets)
+
+combined_pwm <- align_to_reference(combined)
+
+write.csv(
+    combined_pwm,
+    paste0(output_prefix,\"_combined_PWM.csv\"),
+    quote=FALSE
+)
+
+pdf(
+    paste0(output_prefix,\"_combined_logo.pdf\"),
+    width=6,
+    height=2.5
+)
+
+print(
+
+    ggseqlogo(
+        combined_pwm,
+        method=\"bit\"
+    ) +
+    ggtitle(
+        paste0(
+            output_prefix,
+            \" Combined 5/6/7-mer\"
+        )
+    ) +
+    theme_bw(base_size=14)
+
+)
+```"
+"0","```r
+
+dev.off()
+```"
+"1","null device 
+          1 
+"
+"0","```r
+###############################################################
+## Entropy calculation
+###############################################################
+
+entropy <- function(p)
+{
+
+    p <- p[p > 0]
+
+    -sum(p * log2(p))
+
+}
+
+column_entropy <- apply(
+    combined_pwm,
+    2,
+    entropy
+)
+
+cat(
+    \"\nMean motif entropy =\",
+    mean(column_entropy),
+    \"\n\"
+)
+```"
+"1","
+Mean motif entropy = 0.8783275 
+"
+"0","```r
+write.csv(
+    data.frame(
+        Position = seq_along(column_entropy),
+        Entropy = column_entropy
+    ),
+    paste0(output_prefix,\"_entropy.csv\"),
+    row.names = FALSE,
+    quote = FALSE
+)
+
+###############################################################
+## Finished
+###############################################################
+
+cat(\"\nFinished!\n\")
+```"
+"1","
+Finished!
+"

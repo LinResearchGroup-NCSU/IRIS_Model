@@ -1,0 +1,312 @@
+"0","```r
+###############################################################
+## Average IRIS scores by unique RNA 5mer
+##
+## Input:
+##
+## kmer_IRIS.csv
+##
+## Format:
+## sequence    IRIS_score
+##
+## Example:
+## ProteinAAAAAaaaauuu   -12.394075
+##
+##
+## Output:
+##
+## IRIS_5mer_average.csv
+##
+## Columns:
+## 5mer
+## mean_IRIS_score
+## n_sequences
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+\"/Users/eduardo/EC_Documents/Lin_lab/RNA_Protein/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/6G99\"
+)
+
+
+input_file <- \"kmer_IRIS.csv\"
+
+output_file <- \"IRIS_5mer_average.csv\"
+
+
+
+###############################################################
+## Load libraries
+###############################################################
+
+library(dplyr)
+
+
+
+###############################################################
+## Read input file
+###############################################################
+
+data <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE
+)
+
+
+colnames(data) <- c(
+    \"sequence\",
+    \"score\"
+)
+
+
+data$score <- as.numeric(
+    data$score
+)
+
+
+
+cat(
+\"Total sequences:\",
+nrow(data),
+\"\n\"
+)
+```"
+"1","Total sequences: 1024 
+"
+"0","```r
+###############################################################
+## Function to extract lowercase RNA region
+###############################################################
+
+extract_rna <- function(sequence)
+{
+
+    chars <- strsplit(
+        sequence,
+        \"\"
+    )[[1]]
+
+
+    rna_positions <- which(
+        grepl(
+            \"[a-z]\",
+            chars
+        )
+    )
+
+
+    if(length(rna_positions)==0)
+    {
+        return(NA)
+    }
+
+
+    rna <- paste0(
+        chars[rna_positions],
+        collapse=\"\"
+    )
+
+
+    return(rna)
+
+}
+
+
+
+###############################################################
+## Extract RNA regions
+###############################################################
+
+data$rna <- sapply(
+    data$sequence,
+    extract_rna
+)
+
+
+data <- data[
+    !is.na(data$rna),
+]
+
+
+cat(
+\"Sequences with RNA:\",
+nrow(data),
+\"\n\"
+)
+```"
+"1","Sequences with RNA: 1024 
+"
+"0","```r
+###############################################################
+## Extract all possible 5mers from RNA
+###############################################################
+
+extract_5mers <- function(rna)
+{
+
+    n <- nchar(rna)
+
+
+    if(n < 5)
+    {
+        return(character(0))
+    }
+
+
+    kmers <- character()
+
+
+    for(i in 1:(n-4))
+    {
+
+        kmer <- substr(
+            rna,
+            i,
+            i+4
+        )
+
+
+        kmers <- c(
+            kmers,
+            kmer
+        )
+
+    }
+
+
+    return(kmers)
+
+}
+
+
+
+###############################################################
+## Expand sequence into individual 5mers
+###############################################################
+
+library <- data.frame(
+    kmer=character(),
+    score=numeric(),
+    stringsAsFactors=FALSE
+)
+
+
+
+for(i in seq_len(nrow(data)))
+{
+
+    kmers <- extract_5mers(
+        data$rna[i]
+    )
+
+
+    if(length(kmers)==0)
+        next
+
+
+    temp <- data.frame(
+        kmer=kmers,
+        score=data$score[i],
+        stringsAsFactors=FALSE
+    )
+
+
+    library <- rbind(
+        library,
+        temp
+    )
+
+}
+
+
+
+cat(
+\"Total extracted 5mers:\",
+nrow(library),
+\"\n\"
+)
+```"
+"1","Total extracted 5mers: 1024 
+"
+"0","```r
+###############################################################
+## Average IRIS score per unique 5mer
+###############################################################
+
+summary <- library %>%
+    
+    group_by(kmer) %>%
+    
+    summarise(
+        mean_IRIS_score = mean(score),
+        n_sequences = n(),
+        .groups=\"drop\"
+    )
+
+
+
+colnames(summary)[1] <- \"5mer\"
+
+
+
+###############################################################
+## Sort by IRIS score
+##
+## More negative = stronger predicted binding
+###############################################################
+
+summary <- summary %>%
+    
+    arrange(
+        mean_IRIS_score
+    )
+
+
+
+###############################################################
+## Write output
+###############################################################
+
+write.csv(
+    summary,
+    output_file,
+    row.names=FALSE
+)
+
+
+
+###############################################################
+## Final report
+###############################################################
+
+cat(
+\"\nFinished\n\"
+)
+```"
+"1","
+Finished
+"
+"0","```r
+cat(
+\"Unique 5mers:\",
+nrow(summary),
+\"\n\"
+)
+```"
+"1","Unique 5mers: 1024 
+"
+"0","```r
+cat(
+\"Output:\",
+output_file,
+\"\n\"
+)
+```"
+"1","Output: IRIS_5mer_average.csv 
+"

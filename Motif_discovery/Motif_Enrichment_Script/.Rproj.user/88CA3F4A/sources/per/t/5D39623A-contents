@@ -1,0 +1,4053 @@
+---
+title: "NAR Revisions - 5mer Motif Enrichment"
+output: html_notebook
+---
+
+##Creating Kmer Library by Randomizing entire RNA Sequence
+```{r}
+###############################################################
+## Generate complete 5mer library across ENTIRE RNA sequence
+##
+## Input:
+##
+## native.seq
+##      Full native sequence
+##      Protein = uppercase
+##      RNA     = lowercase
+##
+## Rules:
+##
+## - ALL lowercase RNA positions are considered
+## - randomize_position_RNA.txt is NOT used
+## - Protein sequence remains unchanged
+## - Every possible RNA 5mer (4^5 = 1024) is generated
+## - Every possible 5mer is threaded through every RNA window
+## - RNA 5mer substitutions are lowercase
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+"/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/RBP_complex"
+)
+
+native_file <- "native.seq"
+
+output_file <- "kmer_library.txt"
+
+
+
+###############################################################
+## Read native sequence
+###############################################################
+
+lines <- readLines(
+    native_file
+)
+
+
+# Remove FASTA header if present
+
+lines <- lines[
+    !grepl("^>", lines)
+]
+
+
+native_seq <- paste0(
+    lines,
+    collapse = ""
+)
+
+
+chars <- strsplit(
+    native_seq,
+    ""
+)[[1]]
+
+
+seq_length <- length(chars)
+
+
+cat(
+    "Native length:",
+    seq_length,
+    "\n"
+)
+
+
+
+###############################################################
+## Identify ALL RNA positions
+##
+## RNA is represented by lowercase:
+## a, c, g, u
+###############################################################
+
+rna_positions <- which(
+    chars %in% c(
+        "a",
+        "c",
+        "g",
+        "u"
+    )
+)
+
+
+if(length(rna_positions) == 0)
+{
+    stop(
+        "No lowercase RNA positions found in native.seq"
+    )
+}
+
+
+cat(
+    "Total RNA positions:",
+    length(rna_positions),
+    "\n"
+)
+
+
+cat(
+    "RNA range:",
+    min(rna_positions),
+    "-",
+    max(rna_positions),
+    "\n"
+)
+
+
+cat(
+    "Native RNA:",
+    paste0(
+        chars[rna_positions],
+        collapse = ""
+    ),
+    "\n"
+)
+
+
+
+###############################################################
+## Check that RNA positions are continuous
+###############################################################
+
+if(
+    any(
+        diff(rna_positions) != 1
+    )
+)
+{
+    stop(
+        paste(
+            "RNA positions are not continuous.",
+            "The script expects one continuous RNA region."
+        )
+    )
+}
+
+
+
+###############################################################
+## Define RNA region
+###############################################################
+
+rna_start <- min(
+    rna_positions
+)
+
+rna_end <- max(
+    rna_positions
+)
+
+rna_length <- length(
+    rna_positions
+)
+
+
+cat(
+    "RNA length:",
+    rna_length,
+    "\n"
+)
+
+
+
+###############################################################
+## Check that RNA is long enough for a 5mer
+###############################################################
+
+if(
+    rna_length < 5
+)
+{
+    stop(
+        "RNA sequence is shorter than 5 nt."
+    )
+}
+
+
+
+###############################################################
+## Generate ALL possible RNA 5mers
+##
+## 4^5 = 1024
+###############################################################
+
+bases <- c(
+    "a",
+    "c",
+    "g",
+    "u"
+)
+
+
+all_5mers <- apply(
+    expand.grid(
+        bases,
+        bases,
+        bases,
+        bases,
+        bases,
+        stringsAsFactors = FALSE
+    ),
+    1,
+    paste0,
+    collapse = ""
+)
+
+
+cat(
+    "\nTotal possible 5mers:",
+    length(all_5mers),
+    "\n"
+)
+
+
+
+###############################################################
+## Generate library
+##
+## Every RNA window receives every possible 5mer.
+###############################################################
+
+library <- character()
+
+
+n_windows <- rna_length - 5 + 1
+
+
+cat(
+    "RNA 5mer windows:",
+    n_windows,
+    "\n"
+)
+
+
+cat(
+    "Expected sequences before duplicate removal:",
+    n_windows * length(all_5mers),
+    "\n\n"
+)
+
+
+
+###############################################################
+## Thread every possible 5mer
+###############################################################
+
+for(i in seq_len(n_windows))
+{
+
+    start <- rna_start + i - 1
+
+    end <- start + 4
+
+
+    cat(
+        "Threading RNA positions",
+        start,
+        "-",
+        end,
+        "\n"
+    )
+
+
+    for(kmer in all_5mers)
+    {
+
+        new_sequence <- chars
+
+
+        replacement <- strsplit(
+            kmer,
+            ""
+        )[[1]]
+
+
+        # Replace the current 5mer window
+
+        new_sequence[
+            start:end
+        ] <- replacement
+
+
+        library <- c(
+            library,
+            paste0(
+                new_sequence,
+                collapse = ""
+            )
+        )
+
+    }
+
+}
+
+
+
+###############################################################
+## Remove exact duplicate full sequences
+###############################################################
+
+library <- unique(
+    library
+)
+
+
+
+###############################################################
+## Write output
+###############################################################
+
+writeLines(
+    library,
+    output_file
+)
+
+
+
+###############################################################
+## Summary
+###############################################################
+
+cat(
+    "\nFinished\n"
+)
+
+
+cat(
+    "Native sequence length:",
+    seq_length,
+    "\n"
+)
+
+
+cat(
+    "RNA length:",
+    rna_length,
+    "\n"
+)
+
+
+cat(
+    "Number of 5mer windows:",
+    n_windows,
+    "\n"
+)
+
+
+cat(
+    "Possible 5mers per window:",
+    length(all_5mers),
+    "\n"
+)
+
+
+cat(
+    "Sequences generated before duplicate removal:",
+    n_windows * length(all_5mers),
+    "\n"
+)
+
+
+cat(
+    "Unique sequences written:",
+    length(library),
+    "\n"
+)
+
+
+cat(
+    "Output file:",
+    output_file,
+    "\n"
+)
+```
+
+
+##Creating Kmer Library within Binding Interface (RNA Contact Map)
+```{r}
+###############################################################
+## Generate complete 5mer threading library
+##
+## Input:
+##5HO41FXL
+## native.seq
+##      Full native sequence
+##      Protein = uppercase
+##      RNA = lowercase
+##
+## randomize_position_RNA.txt
+##      Positions where RNA randomization is allowed
+##
+## Rules:
+##
+## - Only continuous position blocks are threaded
+## - Blocks <5 residues remain native
+## - Blocks >=5 residues use sliding 5mer windows
+## - Every possible RNA 5mer (4^5 = 1024) is generated
+## - Threaded kmers remain lowercase RNA
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+"/Users/eduardo/EC_Documents/Lin_lab/RNA_Protein/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code"
+)
+
+
+native_file <- "native.seq"
+
+position_file <- "randomize_position_RNA.txt"
+
+output_file <- "kmer_library.txt"
+
+
+
+###############################################################
+## Read native sequence
+###############################################################
+
+lines <- readLines(native_file)
+
+
+# Remove FASTA header if present
+
+lines <- lines[
+    !grepl("^>", lines)
+]
+
+
+native_seq <- paste0(
+    lines,
+    collapse=""
+)
+
+
+chars <- strsplit(
+    native_seq,
+    ""
+)[[1]]
+
+
+seq_length <- length(chars)
+
+
+cat(
+"Native length:",
+seq_length,
+"\n"
+)
+
+
+
+###############################################################
+## Read randomize positions
+###############################################################
+
+positions <- scan(
+    position_file,
+    what=integer(),
+    quiet=TRUE
+)
+
+
+positions <- sort(
+    unique(positions)
+)
+
+
+if(length(positions) == 0)
+{
+    stop(
+        "No valid positions found in randomize_position_RNA.txt"
+    )
+}
+
+
+cat(
+"Randomized positions:",
+length(positions),
+"\n"
+)
+
+
+
+###############################################################
+## Find continuous position blocks
+###############################################################
+
+find_blocks <- function(pos)
+{
+
+    blocks <- list()
+
+    start <- pos[1]
+
+    previous <- pos[1]
+
+
+    counter <- 1
+
+
+    if(length(pos) == 1)
+    {
+        blocks[[1]] <- c(
+            start,
+            previous
+        )
+
+        return(blocks)
+    }
+
+
+    for(i in 2:length(pos))
+    {
+
+        if(pos[i] == previous + 1)
+        {
+
+            previous <- pos[i]
+
+        }
+        else
+        {
+
+            blocks[[counter]] <- c(
+                start,
+                previous
+            )
+
+            counter <- counter + 1
+
+            start <- pos[i]
+
+            previous <- pos[i]
+
+        }
+
+    }
+
+
+    blocks[[counter]] <- c(
+        start,
+        previous
+    )
+
+
+    return(blocks)
+
+}
+
+
+blocks <- find_blocks(
+    positions
+)
+
+
+
+cat(
+"\nContinuous blocks:\n"
+)
+
+
+for(block in blocks)
+{
+
+    cat(
+        block[1],
+        "-",
+        block[2],
+        "length:",
+        block[2]-block[1]+1,
+        "\n"
+    )
+
+}
+
+
+
+###############################################################
+## Generate all possible RNA 5mers
+###############################################################
+
+# Lowercase RNA alphabet
+bases <- c(
+    "a",
+    "c",
+    "g",
+    "u"
+)
+
+
+all_5mers <- apply(
+    expand.grid(
+        bases,
+        bases,
+        bases,
+        bases,
+        bases,
+        stringsAsFactors=FALSE
+    ),
+    1,
+    paste0,
+    collapse=""
+)
+
+
+
+cat(
+"\nTotal 5mers:",
+length(all_5mers),
+"\n"
+)
+
+
+
+###############################################################
+## Thread 5mers
+###############################################################
+
+library <- character()
+
+
+
+for(block in blocks)
+{
+
+
+    block_start <- block[1]
+
+    block_end <- block[2]
+
+
+    block_length <- block_end-block_start+1
+
+
+
+    ###########################################################
+    ## Ignore short regions
+    ###########################################################
+
+    if(block_length < 5)
+    {
+
+        cat(
+            "Skipping block",
+            block_start,
+            "-",
+            block_end,
+            "(length <5)\n"
+        )
+
+        next
+
+    }
+
+
+
+    ###########################################################
+    ## Sliding 5mer windows
+    ###########################################################
+
+    for(start in block_start:(block_end-4))
+    {
+
+
+        end <- start + 4
+
+
+        cat(
+            "Threading positions",
+            start,
+            "-",
+            end,
+            "\n"
+        )
+
+
+
+        for(kmer in all_5mers)
+        {
+
+
+            new_sequence <- chars
+
+
+            replacement <- strsplit(
+                kmer,
+                ""
+            )[[1]]
+
+
+            # Replace only the 5mer region
+            # with lowercase RNA kmer
+
+            new_sequence[start:end] <- replacement
+
+
+
+            library <- c(
+                library,
+                paste0(
+                    new_sequence,
+                    collapse=""
+                )
+            )
+
+        }
+
+    }
+
+}
+
+
+
+###############################################################
+## Remove duplicates
+###############################################################
+
+library <- unique(
+    library
+)
+
+
+
+###############################################################
+## Write output
+###############################################################
+
+writeLines(
+    library,
+    output_file
+)
+
+
+
+###############################################################
+## Summary
+###############################################################
+
+cat(
+"\nFinished\n"
+)
+
+
+cat(
+"Generated sequences:",
+length(library),
+"\n"
+)
+
+
+cat(
+"Output file:",
+output_file,
+"\n"
+)
+```
+
+
+##Average unique kmer ddG IRIS
+```{r}
+###############################################################
+## Average IRIS scores by unique RNA 5mer
+##
+## Input:
+##
+## kmer_IRIS.csv
+##
+## Format:
+## sequence    IRIS_score
+##
+## Example:
+## ProteinAAAAAaaaauuu   -12.394075
+##
+##
+## Output:
+##
+## IRIS_5mer_average.csv
+##
+## Columns:
+## 5mer
+## mean_IRIS_score
+## n_sequences
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+"/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/RBP_complex/1URN/FULL_RNA"
+)
+
+
+input_file <- "kmer_IRIS.csv"
+
+output_file <- "IRIS_5mer_average.csv"
+
+
+
+###############################################################
+## Load libraries
+###############################################################
+
+library(dplyr)
+
+
+
+###############################################################
+## Read input file
+###############################################################
+
+data <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE
+)
+
+
+colnames(data) <- c(
+    "sequence",
+    "score"
+)
+
+
+data$score <- as.numeric(
+    data$score
+)
+
+
+
+cat(
+"Total sequences:",
+nrow(data),
+"\n"
+)
+
+
+
+###############################################################
+## Function to extract lowercase RNA region
+###############################################################
+
+extract_rna <- function(sequence)
+{
+
+    chars <- strsplit(
+        sequence,
+        ""
+    )[[1]]
+
+
+    rna_positions <- which(
+        grepl(
+            "[a-z]",
+            chars
+        )
+    )
+
+
+    if(length(rna_positions)==0)
+    {
+        return(NA)
+    }
+
+
+    rna <- paste0(
+        chars[rna_positions],
+        collapse=""
+    )
+
+
+    return(rna)
+
+}
+
+
+
+###############################################################
+## Extract RNA regions
+###############################################################
+
+data$rna <- sapply(
+    data$sequence,
+    extract_rna
+)
+
+
+data <- data[
+    !is.na(data$rna),
+]
+
+
+cat(
+"Sequences with RNA:",
+nrow(data),
+"\n"
+)
+
+
+
+###############################################################
+## Extract all possible 5mers from RNA
+###############################################################
+
+extract_5mers <- function(rna)
+{
+
+    n <- nchar(rna)
+
+
+    if(n < 5)
+    {
+        return(character(0))
+    }
+
+
+    kmers <- character()
+
+
+    for(i in 1:(n-4))
+    {
+
+        kmer <- substr(
+            rna,
+            i,
+            i+4
+        )
+
+
+        kmers <- c(
+            kmers,
+            kmer
+        )
+
+    }
+
+
+    return(kmers)
+
+}
+
+
+
+###############################################################
+## Expand sequence into individual 5mers
+###############################################################
+
+library <- data.frame(
+    kmer=character(),
+    score=numeric(),
+    stringsAsFactors=FALSE
+)
+
+
+
+for(i in seq_len(nrow(data)))
+{
+
+    kmers <- extract_5mers(
+        data$rna[i]
+    )
+
+
+    if(length(kmers)==0)
+        next
+
+
+    temp <- data.frame(
+        kmer=kmers,
+        score=data$score[i],
+        stringsAsFactors=FALSE
+    )
+
+
+    library <- rbind(
+        library,
+        temp
+    )
+
+}
+
+
+
+cat(
+"Total extracted 5mers:",
+nrow(library),
+"\n"
+)
+
+
+
+###############################################################
+## Average IRIS score per unique 5mer
+###############################################################
+
+summary <- library %>%
+    
+    group_by(kmer) %>%
+    
+    summarise(
+        mean_IRIS_score = mean(score),
+        n_sequences = n(),
+        .groups="drop"
+    )
+
+
+
+colnames(summary)[1] <- "5mer"
+
+
+
+###############################################################
+## Sort by IRIS score
+##
+## More negative = stronger predicted binding
+###############################################################
+
+summary <- summary %>%
+    
+    arrange(
+        mean_IRIS_score
+    )
+
+
+
+###############################################################
+## Write output
+###############################################################
+
+write.csv(
+    summary,
+    output_file,
+    row.names=FALSE
+)
+
+
+
+###############################################################
+## Final report
+###############################################################
+
+cat(
+"\nFinished\n"
+)
+
+cat(
+"Unique 5mers:",
+nrow(summary),
+"\n"
+)
+
+cat(
+"Output:",
+output_file,
+"\n"
+)
+```
+
+
+##Masked 5mer using Stepwise dG IRIS
+```{r}
+###############################################################
+## IRIS Stepwise 5mer Motif Discovery
+##
+## Analogous to Dominguez et al. RBNS stepwise R-1 procedure
+##
+## Concept:
+##
+## Instead of experimental enrichment (R-1), use IRIS predicted
+## binding scores.
+##
+## Iterative procedure:
+##
+## 1. Extract all RNA 5mers
+## 2. Calculate mean IRIS score per 5mer
+## 3. Select strongest predicted binder
+## 4. Mask all occurrences of that 5mer
+## 5. Recalculate remaining 5mers
+## 6. Repeat until stopping criteria
+##
+###############################################################
+
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+setwd(
+"/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/RBP_complex/1URN/FULL_RNA"
+)
+
+
+input_file <- "kmer_IRIS.csv"
+
+
+output_prefix <- "IRIS"
+
+
+###############################################################
+## Parameters
+###############################################################
+
+# Number of motifs to discover
+max_iterations <- 50
+
+
+# Minimum number of occurrences required
+# before accepting a motif
+min_occurrences <- 1
+
+
+# Stop if no remaining 5mers
+# satisfy this threshold
+#
+# More negative = stronger IRIS binding
+#
+min_IRIS_score <- Inf
+
+
+
+###############################################################
+## Load libraries
+###############################################################
+
+library(dplyr)
+
+
+
+###############################################################
+## Read input file
+###############################################################
+
+data <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE
+)
+
+
+colnames(data) <- c(
+    "sequence",
+    "score"
+)
+
+
+data$score <- as.numeric(
+    data$score
+)
+
+
+
+cat(
+"\nTotal protein-RNA sequences:",
+nrow(data),
+"\n"
+)
+
+
+
+###############################################################
+## Extract RNA region
+##
+## Input example:
+##
+## ProteinAAAAAaaaauuu
+##
+## Output:
+##
+## aaaauuu
+##
+###############################################################
+
+extract_rna <- function(sequence)
+{
+
+    chars <- strsplit(
+        sequence,
+        ""
+    )[[1]]
+
+
+    rna_positions <- which(
+        grepl(
+            "[a-z]",
+            chars
+        )
+    )
+
+
+    if(length(rna_positions)==0)
+    {
+        return(NA)
+    }
+
+
+    rna <- paste0(
+        chars[rna_positions],
+        collapse=""
+    )
+
+
+    toupper(
+        chartr(
+            "T",
+            "U",
+            rna
+        )
+    )
+
+}
+
+
+
+###############################################################
+## Extract RNA sequences
+###############################################################
+
+data$rna <- sapply(
+    data$sequence,
+    extract_rna
+)
+
+
+data <- data %>%
+    filter(
+        !is.na(rna)
+    )
+
+
+
+cat(
+"Sequences containing RNA:",
+nrow(data),
+"\n"
+)
+
+
+
+###############################################################
+## Initialize masking structure
+##
+## Each RNA sequence receives a logical vector
+##
+## FALSE = available nucleotide
+## TRUE  = masked nucleotide
+##
+###############################################################
+
+masked_positions <- list()
+
+
+
+for(i in seq_len(nrow(data)))
+{
+
+    masked_positions[[i]] <-
+        rep(
+            FALSE,
+            nchar(
+                data$rna[i]
+            )
+        )
+
+}
+
+
+
+###############################################################
+## Storage for discovered motifs
+###############################################################
+
+stepwise_results <- data.frame(
+
+    iteration = integer(),
+
+    motif = character(),
+
+    mean_IRIS_score = numeric(),
+
+    occurrences = integer(),
+
+    sequences = integer(),
+
+    stringsAsFactors = FALSE
+
+)
+
+
+
+###############################################################
+## Function placeholder:
+##
+## Generate currently available 5mers
+##
+## This will:
+##
+## - ignore masked nucleotides
+## - return every valid remaining 5mer
+## - preserve sequence identity
+## - preserve position information
+##
+## Implemented in Part 2
+###############################################################
+
+generate_available_5mers <- function(
+    data,
+    masked_positions
+)
+{
+
+    stop(
+        "generate_available_5mers() implemented in Part 2"
+    )
+
+}
+
+
+
+###############################################################
+## Function placeholder:
+##
+## Select strongest IRIS motif
+##
+## Implemented in Part 2
+###############################################################
+
+rank_stepwise_5mers <- function(
+    available_library
+)
+{
+
+    stop(
+        "rank_stepwise_5mers() implemented in Part 2"
+    )
+
+}
+
+
+
+###############################################################
+## Function placeholder:
+##
+## Mask selected motif occurrences
+##
+## Implemented in Part 3
+###############################################################
+
+mask_selected_motif <- function(
+    motif,
+    data,
+    masked_positions
+)
+{
+
+    stop(
+        "mask_selected_motif() implemented in Part 3"
+    )
+
+}
+
+
+
+###############################################################
+## Initial report
+###############################################################
+
+cat(
+"\nInitialization complete\n"
+)
+
+cat(
+"RNA sequences loaded:",
+nrow(data),
+"\n"
+)
+
+cat(
+"Ready for iterative stepwise motif discovery\n"
+)
+
+###############################################################
+## PART 2
+##
+## Generate available 5mers from unmasked RNA
+##
+## Equivalent to recalculating remaining kmer enrichment
+## after masking higher-affinity motifs in RBNS
+##
+###############################################################
+
+
+
+###############################################################
+## Generate all currently available 5mers
+##
+## A 5mer is valid only if:
+##
+## - all 5 nucleotides exist
+## - none of the 5 positions are masked
+##
+###############################################################
+
+generate_available_5mers <- function(
+    data,
+    masked_positions
+)
+{
+
+    library <- data.frame(
+
+        kmer = character(),
+
+        score = numeric(),
+
+        sequence_id = integer(),
+
+        start_position = integer(),
+
+        stringsAsFactors = FALSE
+
+    )
+
+
+    ###########################################################
+    ## Iterate through every RNA sequence
+    ###########################################################
+
+    for(i in seq_len(nrow(data)))
+    {
+
+        rna <- data$rna[i]
+
+        score <- data$score[i]
+
+
+        n <- nchar(rna)
+
+
+        if(n < 5)
+            next
+
+
+
+        chars <- strsplit(
+            rna,
+            ""
+        )[[1]]
+
+
+
+        #######################################################
+        ## Slide 5mer window
+        #######################################################
+
+        for(pos in 1:(n-4))
+        {
+
+
+            positions <- pos:(pos+4)
+
+
+
+            ###################################################
+            ## Reject if any nucleotide already masked
+            ###################################################
+
+            if(
+                any(
+                    masked_positions[[i]][positions]
+                )
+            )
+            {
+                next
+            }
+
+
+
+            kmer <- paste0(
+                chars[positions],
+                collapse=""
+            )
+
+
+
+            library <- rbind(
+
+                library,
+
+                data.frame(
+
+                    kmer = kmer,
+
+                    score = score,
+
+                    sequence_id = i,
+
+                    start_position = pos,
+
+                    stringsAsFactors = FALSE
+
+                )
+
+            )
+
+        }
+
+    }
+
+
+    return(library)
+
+}
+
+
+
+
+
+###############################################################
+## Calculate stepwise IRIS scores
+##
+## Analogous to:
+##
+## stepwise R-1 = recalculated enrichment
+##
+## Here:
+##
+## stepwise IRIS score =
+## mean predicted binding score among remaining examples
+##
+###############################################################
+
+rank_stepwise_5mers <- function(
+    available_library
+)
+{
+
+
+    if(
+        nrow(available_library)==0
+    )
+    {
+
+        return(
+            data.frame()
+        )
+
+    }
+
+
+
+    ranked <- available_library %>%
+
+        group_by(
+            kmer
+        ) %>%
+
+        summarise(
+
+            mean_IRIS_score =
+                mean(
+                    score
+                ),
+
+            n_occurrences =
+                n(),
+
+            n_sequences =
+                n_distinct(
+                    sequence_id
+                ),
+
+            .groups="drop"
+
+        )
+
+
+
+    ###########################################################
+    ## Sort strongest predicted binders first
+    ##
+    ## More negative = stronger IRIS binding
+    ###########################################################
+
+    ranked <- ranked %>%
+
+        arrange(
+            mean_IRIS_score
+        )
+
+
+
+    return(ranked)
+
+}
+
+
+
+
+
+###############################################################
+## Function to select the strongest remaining motif
+###############################################################
+
+select_best_stepwise_motif <- function(
+    ranked_table
+)
+{
+
+
+    if(
+        nrow(ranked_table)==0
+    )
+    {
+
+        return(
+            NULL
+        )
+
+    }
+
+
+
+    best <- ranked_table[1,]
+
+
+
+    return(best)
+
+}
+
+
+
+
+
+###############################################################
+## Test current available library
+###############################################################
+
+cat(
+"\nGenerating initial available 5mers...\n"
+)
+
+
+initial_library <-
+    generate_available_5mers(
+        data,
+        masked_positions
+    )
+
+
+
+cat(
+"Initial available 5mers:",
+nrow(initial_library),
+"\n"
+)
+
+
+
+initial_ranked <-
+    rank_stepwise_5mers(
+        initial_library
+    )
+
+
+
+cat(
+"Unique initial 5mers:",
+nrow(initial_ranked),
+"\n"
+)
+
+
+
+if(
+    nrow(initial_ranked)>0
+)
+{
+
+    cat(
+        "\nStrongest initial IRIS 5mer:\n"
+    )
+
+
+    print(
+        initial_ranked[1,]
+    )
+
+}
+
+
+
+###############################################################
+## END PART 2
+##
+## Part 3 will implement:
+##
+## - iterative motif selection
+## - occurrence masking
+## - stopping conditions
+## - output of stepwise motifs
+##
+###############################################################
+
+###############################################################
+## PART 3
+##
+## Iterative IRIS stepwise motif discovery
+##
+## Equivalent concept:
+##
+## RBNS:
+##   Find strongest kmer
+##   Assign R-1
+##   Mask occurrences
+##   Recalculate enrichment
+##   Repeat
+##
+## IRIS:
+##   Find strongest predicted 5mer
+##   Assign mean IRIS score
+##   Mask occurrences
+##   Recalculate mean IRIS scores
+##   Repeat
+##
+###############################################################
+
+
+
+###############################################################
+## Mask all occurrences of selected motif
+##
+## Only the selected 5mer positions are masked.
+##
+## Overlapping occurrences are also masked.
+##
+###############################################################
+
+mask_selected_motif <- function(
+    motif,
+    data,
+    masked_positions
+)
+{
+
+
+    motif_chars <- strsplit(
+        motif,
+        ""
+    )[[1]]
+
+
+
+    motif_length <- nchar(
+        motif
+    )
+
+
+
+    ###########################################################
+    ## Search every RNA sequence
+    ###########################################################
+
+    for(i in seq_len(nrow(data)))
+    {
+
+        rna <- data$rna[i]
+
+
+        chars <- strsplit(
+            rna,
+            ""
+        )[[1]]
+
+
+        n <- nchar(
+            rna
+        )
+
+
+
+        if(n < motif_length)
+            next
+
+
+
+        #######################################################
+        ## Slide motif window
+        #######################################################
+
+        for(pos in 1:(n-motif_length+1))
+        {
+
+
+            positions <- pos:(pos+motif_length-1)
+
+
+
+            candidate <-
+                chars[positions]
+
+
+
+            candidate <-
+                paste0(
+                    candidate,
+                    collapse=""
+                )
+
+
+
+            if(
+                candidate == motif
+            )
+            {
+
+                masked_positions[[i]][positions] <-
+                    TRUE
+
+            }
+
+
+        }
+
+    }
+
+
+    return(
+        masked_positions
+    )
+
+}
+
+
+
+
+
+###############################################################
+## Main iterative discovery loop
+###############################################################
+
+
+cat(
+"\n====================================\n"
+)
+
+cat(
+"Starting IRIS stepwise discovery\n"
+)
+
+cat(
+"====================================\n"
+)
+
+
+
+for(iter in 1:max_iterations)
+{
+
+
+    cat(
+        "\nIteration:",
+        iter,
+        "\n"
+    )
+
+
+
+    ###########################################################
+    ## Generate remaining unmasked 5mers
+    ###########################################################
+
+    available_library <-
+        generate_available_5mers(
+            data,
+            masked_positions
+        )
+
+
+
+    cat(
+        "Available 5mers:",
+        nrow(available_library),
+        "\n"
+    )
+
+
+
+    if(
+        nrow(available_library)==0
+    )
+    {
+
+        cat(
+            "No remaining 5mers. Stopping.\n"
+        )
+
+        break
+
+    }
+
+
+
+    ###########################################################
+    ## Rank remaining 5mers
+    ###########################################################
+
+    ranked <-
+        rank_stepwise_5mers(
+            available_library
+        )
+
+
+
+    if(
+        nrow(ranked)==0
+    )
+    {
+
+        break
+
+    }
+
+
+
+    ###########################################################
+    ## Select strongest remaining motif
+    ###########################################################
+
+    best <-
+        select_best_stepwise_motif(
+            ranked
+        )
+
+
+
+    motif <- best$kmer
+
+
+
+    score <- best$mean_IRIS_score
+
+
+
+    ###########################################################
+    ## Check stopping threshold
+    ###########################################################
+
+    if(
+        score > min_IRIS_score
+    )
+    {
+
+        cat(
+            "IRIS score threshold reached.\n"
+        )
+
+        break
+
+    }
+
+
+
+    ###########################################################
+    ## Count occurrences before masking
+    ###########################################################
+
+    occurrences <-
+        best$n_occurrences
+
+
+
+    sequences <-
+        best$n_sequences
+
+
+
+    if(
+        occurrences < min_occurrences
+    )
+    {
+
+        cat(
+            "Insufficient occurrences. Stopping.\n"
+        )
+
+        break
+
+    }
+
+
+
+    ###########################################################
+    ## Record discovered motif
+    ###########################################################
+
+    stepwise_results <-
+
+        rbind(
+
+            stepwise_results,
+
+            data.frame(
+
+                iteration = iter,
+
+                motif = motif,
+
+                mean_IRIS_score = score,
+
+                occurrences = occurrences,
+
+                sequences = sequences,
+
+                stringsAsFactors = FALSE
+
+            )
+
+        )
+
+
+
+    cat(
+        "Selected motif:",
+        motif,
+        "\n"
+    )
+
+    cat(
+        "Mean IRIS score:",
+        score,
+        "\n"
+    )
+
+    cat(
+        "Occurrences:",
+        occurrences,
+        "\n"
+    )
+
+
+
+    ###########################################################
+    ## Mask this motif from all RNA sequences
+    ###########################################################
+
+    masked_positions <-
+
+        mask_selected_motif(
+
+            motif,
+
+            data,
+
+            masked_positions
+
+        )
+
+
+
+}
+
+
+
+
+
+###############################################################
+## Save stepwise motif results
+###############################################################
+
+write.csv(
+
+    stepwise_results,
+
+    paste0(
+        output_prefix,
+        "_stepwise_IRIS_5mers.csv"
+    ),
+
+    row.names = FALSE
+
+)
+
+
+
+###############################################################
+## Final report
+###############################################################
+
+cat(
+"\n====================================\n"
+)
+
+cat(
+"IRIS stepwise motif discovery complete\n"
+)
+
+cat(
+"Motifs discovered:",
+nrow(stepwise_results),
+"\n"
+)
+
+
+
+if(
+    nrow(stepwise_results)>0
+)
+{
+
+    cat(
+        "\nTop motifs:\n"
+    )
+
+
+    print(
+        stepwise_results
+    )
+
+}
+
+
+
+cat(
+"\nOutput file:\n"
+)
+
+cat(
+paste0(
+output_prefix,
+"_stepwise_IRIS_5mers.csv"
+),
+"\n"
+)
+
+cat(
+"====================================\n"
+)
+```
+
+
+
+##IRIS Validated Sequence LOGO
+```{r}
+###############################################################
+## IRIS Z-score -> Van Nostrand 2017 Figure 2A Motif Logo
+##
+## Implements:
+##
+## - 5mer only
+## - Lowest IRIS ΔG as reference (strongest binder)
+## - RBNS four alignment rules
+## - Reject non-aligning kmers
+## - Generate PWM weighted by transformed IRIS Z-score
+##
+## Weighting:
+##
+## Input values are precomputed IRIS transformed scores:
+##
+## weight = exp(-z-score)
+##
+## Higher weights correspond to stronger predicted binders.
+##
+###############################################################
+
+library(tidyverse)
+library(ggseqlogo)
+
+###############################################################
+## USER SETTINGS
+###############################################################
+
+input_file <- "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA.csv"
+
+output_prefix <- "SNRPA"
+
+###############################################################
+## Read CSV
+###############################################################
+
+raw <- read.csv(
+    input_file,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = c("", "NA")
+)
+
+###############################################################
+## Parse CSV into kmer table
+###############################################################
+
+kmers <- data.frame(
+    sequence = character(),
+    weight = numeric(),
+    stringsAsFactors = FALSE
+)
+
+for(i in seq_len(nrow(raw)))
+{
+
+    seq <- trimws(as.character(raw[i,1]))
+    wt  <- trimws(as.character(raw[i,2]))
+
+
+    if(is.na(seq) || seq=="")
+        next
+
+
+    if(!is.na(wt) && wt!="")
+    {
+
+        kmers <- rbind(
+            kmers,
+            data.frame(
+                sequence=toupper(
+                    chartr("T","U",seq)
+                ),
+                weight=as.numeric(wt)
+            )
+        )
+
+    }
+
+}
+
+###############################################################
+## Keep only 5mers
+###############################################################
+
+kmers <- kmers %>%
+    filter(
+        nchar(sequence) == 5
+    )
+
+
+###############################################################
+## Sort by strongest binder
+###############################################################
+
+kmers <- kmers %>%
+    arrange(
+        desc(weight)
+    )
+
+cat(
+    "\nNumber of 5mers:",
+    nrow(kmers),
+    "\n"
+)
+
+cat(
+    "\nHighest weight:",
+    max(kmers$weight),
+    "\n"
+)
+
+cat(
+    "Lowest weight:",
+    min(kmers$weight),
+    "\n"
+)
+
+###############################################################
+## RBNS alignment rules (Van Nostrand 2017)
+###############################################################
+
+rbns_alignment <- function(seq, ref)
+{
+
+    s <- strsplit(seq,"")[[1]]
+    r <- strsplit(ref,"")[[1]]
+
+    ###########################################################
+    ## Rule 1
+    ## +/-1 offset
+    ## 0 mismatches among 4 overlaps
+    ###########################################################
+
+    for(offset in c(-1,1))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos >= 1 && pos <= 5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i] != r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap == 4 && mismatches == 0)
+            return(offset)
+
+    }
+
+    ###########################################################
+    ## Rule 2
+    ## +/-1 offset
+    ## exactly one mismatch
+    ###########################################################
+
+    for(offset in c(-1,1))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos >= 1 && pos <= 5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i] != r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap == 4 && mismatches == 1)
+            return(offset)
+
+    }
+
+    ###########################################################
+    ## Rule 3
+    ## no offset
+    ## exactly one mismatch
+    ###########################################################
+
+    if(sum(s != r) == 1)
+        return(0)
+
+    ###########################################################
+    ## Rule 4
+    ## +/-2 offset
+    ## 0 mismatches among 3 overlaps
+    ###########################################################
+
+    for(offset in c(-2,2))
+    {
+
+        mismatches <- 0
+        overlap <- 0
+
+        for(i in seq_along(s))
+        {
+
+            pos <- i + offset
+
+            if(pos >= 1 && pos <= 5)
+            {
+
+                overlap <- overlap + 1
+
+                if(s[i] != r[pos])
+                    mismatches <- mismatches + 1
+
+            }
+
+        }
+
+        if(overlap == 3 && mismatches == 0)
+            return(offset)
+
+    }
+
+    return(NA)
+
+}
+
+###############################################################
+## Strongest binder = highest IRIS weight
+## Input weight = exp(-z-score)
+###############################################################
+
+reference <- kmers$sequence[
+    which.max(kmers$weight)
+]
+
+cat(
+    "\nReference kmer:",
+    reference,
+    "\n"
+)
+
+ref_index <- which.max(kmers$weight)
+
+cat(
+    "Reference weight:",
+    kmers$weight[ref_index],
+    "\n"
+)
+
+###############################################################
+## Align all kmers
+###############################################################
+
+aligned <- data.frame(
+    sequence = reference,
+    weight = max(kmers$weight),
+    offset = 0,
+    stringsAsFactors = FALSE
+)
+
+rejected <- data.frame()
+
+for(i in seq_len(nrow(kmers)))
+{
+
+    if(kmers$sequence[i] == reference)
+        next
+
+    offset <- rbns_alignment(
+        kmers$sequence[i],
+        reference
+    )
+
+    if(is.na(offset))
+    {
+
+        rejected <- rbind(
+    rejected,
+    kmers[i,]
+)
+
+    }
+    else
+    {
+
+        aligned <- rbind(
+    aligned,
+    data.frame(
+        sequence = kmers$sequence[i],
+        weight = kmers$weight[i],
+        offset = offset,
+        stringsAsFactors = FALSE
+    )
+)
+
+    }
+
+}
+
+###############################################################
+## Save aligned/rejected kmers
+###############################################################
+
+write.csv(
+    aligned,
+    paste0(
+        output_prefix,
+        "_aligned_5mers.csv"
+    ),
+    row.names = FALSE
+)
+
+write.csv(
+    rejected,
+    paste0(
+        output_prefix,
+        "_rejected_5mers.csv"
+    ),
+    row.names = FALSE
+)
+
+cat(
+    "\nAligned kmers:",
+    nrow(aligned),
+    "\nRejected kmers:",
+    nrow(rejected),
+    "\n"
+)
+
+###############################################################
+## Build weighted PWM dynamically
+###############################################################
+
+alphabet <- c(
+    "A",
+    "C",
+    "G",
+    "U"
+)
+
+###############################################################
+## Determine motif coordinates
+###############################################################
+
+aligned_positions <- data.frame(
+    start = aligned$offset + 1,
+    end   = aligned$offset + 5
+)
+
+motif_start <- min(
+    aligned_positions$start
+)
+
+motif_end <- max(
+    aligned_positions$end
+)
+
+pwm_length <- motif_end - motif_start + 1
+
+cat(
+    "\nMotif length:",
+    pwm_length,
+    "positions\n"
+)
+
+###############################################################
+## Initialize count matrix
+###############################################################
+
+counts <- matrix(
+    0,
+    nrow = 4,
+    ncol = pwm_length,
+    dimnames = list(
+        alphabet,
+        NULL
+    )
+)
+
+missing_weight <- rep(
+    0,
+    pwm_length
+)
+
+total_weight <- sum(
+    aligned$weight
+)
+
+###############################################################
+## Add weighted kmers
+###############################################################
+
+for(i in seq_len(nrow(aligned)))
+{
+
+    chars <- strsplit(
+        aligned$sequence[i],
+        ""
+    )[[1]]
+
+    w <- aligned$weight[i]
+
+    offset <- aligned$offset[i]
+
+    occupied <- logical(
+        pwm_length
+    )
+
+    for(j in 1:5)
+    {
+
+        pos <- j +
+            offset -
+            motif_start +
+            1
+
+        occupied[pos] <- TRUE
+
+        counts[
+            chars[j],
+            pos
+        ] <-
+        counts[
+            chars[j],
+            pos
+        ] + w
+
+    }
+
+    ###########################################################
+    ## Pseudocounts
+    ###########################################################
+
+    for(pos in which(!occupied))
+    {
+
+        counts[,pos] <-
+            counts[,pos] +
+            w * 0.25
+
+        missing_weight[pos] <-
+            missing_weight[pos] +
+            w
+
+    }
+
+}
+
+
+
+###############################################################
+## Normalize PWM
+##
+## Convert weighted nucleotide counts into probabilities
+###############################################################
+
+pwm <- sweep(
+    counts,
+    2,
+    colSums(counts),
+    "/"
+)
+
+###############################################################
+## Trim edges if >75% missing weight
+##
+## Match Van Nostrand RBNS Figure 2A motif construction
+###############################################################
+
+missing_fraction <-
+    missing_weight / total_weight
+
+keep <-
+    missing_fraction <= 0.75
+
+first <- min(which(keep))
+
+last <- max(which(keep))
+
+pwm <- pwm[, first:last]
+
+counts <- counts[, first:last]
+
+###############################################################
+## Add small pseudocount correction
+##
+## Prevent zero probabilities for information content
+###############################################################
+
+epsilon <- 1e-6
+
+pwm <- pwm + epsilon
+
+pwm <- sweep(
+    pwm,
+    2,
+    colSums(pwm),
+    "/"
+)
+
+###############################################################
+## Convert PWM for ggseqlogo
+##
+## ggseqlogo expects:
+##
+## rows = nucleotides
+## columns = motif positions
+###############################################################
+
+rownames(pwm) <- alphabet
+
+colnames(pwm) <- paste0(
+    "pos",
+    seq_len(
+        ncol(pwm)
+    )
+)
+
+###############################################################
+## Save PWM
+###############################################################
+
+write.csv(
+    pwm,
+    paste0(
+        output_prefix,
+        "_IRIS_weighted_PWM.csv"
+    ),
+    row.names = TRUE
+)
+
+
+
+###############################################################
+## Generate sequence logo
+###############################################################
+
+pdf(
+    paste0(
+        output_prefix,
+        "_IRIS_Figure2A_logo.pdf"
+    ),
+    width=6,
+    height=2.5
+)
+
+print(
+    ggseqlogo(
+        pwm,
+        method="bits"
+    ) +
+    ggtitle(
+        paste0(
+            output_prefix,
+            " IRIS Figure2A motif"
+        )
+    ) +
+    theme_bw(
+        base_size=14
+    )
+)
+
+dev.off()
+
+###############################################################
+## Final summary
+###############################################################
+
+cat(
+    "\n==============================\n"
+)
+
+cat(
+    "IRIS motif logo generation complete\n"
+)
+
+cat(
+    "Reference kmer:",
+    reference,
+    "\n"
+)
+
+cat(
+    "Aligned kmers:",
+    nrow(aligned),
+    "\n"
+)
+
+cat(
+    "Rejected kmers:",
+    nrow(rejected),
+    "\n"
+)
+
+cat(
+    "PWM length:",
+    pwm_length,
+    "\n"
+)
+
+cat(
+    "Output files:\n"
+)
+
+cat(
+    "-",
+    output_prefix,
+    "_aligned_5mers.csv\n"
+)
+
+cat(
+    "-",
+    output_prefix,
+    "_rejected_5mers.csv\n"
+)
+
+cat(
+    "-",
+    output_prefix,
+    "_IRIS_weighted_PWM.csv\n"
+)
+
+cat(
+    "-",
+    output_prefix,
+    "_IRIS_Figure2A_logo.pdf\n"
+)
+
+cat(
+    "==============================\n"
+)
+```
+
+##Comparing Logos
+```{r}
+###############################################################
+# PWM Logo Comparison: RBNS vs IRIS Models
+#
+# Purpose:
+#
+# Quantify whether IRIS predicted enrichment logos reproduce
+# experimentally measured RBNS enrichment motifs.
+#
+# Comparison:
+#
+# RBNS experimental PWM
+# vs
+# IRIS_dG
+# IRIS_Masked_Z
+# IRIS_Z
+#
+# Metrics:
+#
+# Primary:
+# - PWM Pearson correlation
+# - Jensen-Shannon divergence
+#
+# Additional:
+# - IC-weighted JSD
+# - MAE
+# - IC-weighted MAE
+# - Dominant nucleotide agreement
+# - Information content correlation
+#
+###############################################################
+
+
+library(ggplot2)
+library(dplyr)
+
+
+
+###############################################################
+# File paths
+###############################################################
+
+base_dir <- "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA"
+
+
+
+pwm_files <- list(
+
+  RBNS = file.path(
+    "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA/Experimental_logo/SNRPA_RBNS_Figure2A_PWM.csv"
+  ),
+
+
+  Masked_Zexp = file.path(
+    "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA/Masked_Zexp/SNRPA_IRIS_weighted_PWM.csv"
+  ),
+
+
+  Masked_Zratio = file.path(
+    "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA/Masked_Zratio/SNRPA_IRIS_weighted_PWM.csv"
+  ),
+
+
+  Masked_Zscore = file.path(
+    "/Users/eduardo/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/SNRPA/Masked_Zscore/SNRPA_IRIS_weighted_PWM.csv"
+  )
+
+)
+
+
+
+###############################################################
+# Read PWM
+###############################################################
+
+read_pwm <- function(file){
+
+
+  pwm <- read.csv(
+    file,
+    header=TRUE,
+    stringsAsFactors=FALSE,
+    check.names=FALSE
+  )
+
+
+  # Detect nucleotide names
+
+  if(any(
+    pwm[,1] %in% c("A","C","G","U")
+  )){
+
+    rownames(pwm) <- pwm[,1]
+
+    pwm <- pwm[,-1]
+
+  }
+
+
+  pwm <- as.matrix(pwm)
+
+  mode(pwm) <- "numeric"
+
+
+  # enforce RNA alphabet order
+
+  pwm <- pwm[
+    c("A","C","G","U"),
+    ,
+    drop=FALSE
+  ]
+
+
+  return(pwm)
+
+}
+
+
+
+###############################################################
+# Load PWMs
+###############################################################
+
+PWMs <- lapply(
+  pwm_files,
+  read_pwm
+)
+
+
+
+###############################################################
+# Convert PWM to probability matrix
+#
+# Ensures every column sums to 1
+###############################################################
+
+normalize_pwm <- function(pwm){
+
+
+  pwm <- pwm + 1e-10
+
+
+  pwm <- sweep(
+    pwm,
+    2,
+    colSums(pwm),
+    "/"
+  )
+
+
+  return(pwm)
+
+}
+
+
+
+PWMs <- lapply(
+  PWMs,
+  normalize_pwm
+)
+
+
+
+###############################################################
+# Jensen-Shannon divergence
+#
+# 0 = identical
+# 1 = completely different
+###############################################################
+
+jsd <- function(p,q){
+
+
+  eps <- 1e-12
+
+
+  p <- p + eps
+  q <- q + eps
+
+
+  p <- p/sum(p)
+  q <- q/sum(q)
+
+
+  m <- (p+q)/2
+
+
+  KL_p <- sum(
+    p*log2(p/m)
+  )
+
+
+  KL_q <- sum(
+    q*log2(q/m)
+  )
+
+
+  return(
+    (KL_p+KL_q)/2
+  )
+
+}
+
+
+
+###############################################################
+# Information content
+#
+# Measures conservation of a position
+#
+# Maximum RNA IC = 2 bits
+###############################################################
+
+information_content <- function(column){
+
+
+  eps <- 1e-12
+
+
+  sum(
+    column *
+      log2(
+        (column+eps)/0.25
+      )
+  )
+
+}
+
+
+
+###############################################################
+# Dominant nucleotide identity
+#
+# Determines whether the same base dominates
+# each aligned position
+###############################################################
+
+dominant_base <- function(column){
+
+
+  bases <- c(
+    "A",
+    "C",
+    "G",
+    "U"
+  )
+
+
+  bases[
+    which.max(column)
+  ]
+
+}
+
+
+
+###############################################################
+# Base identity score
+#
+# 1 = same dominant nucleotide
+# 0 = different dominant nucleotide
+###############################################################
+
+base_identity_score <- function(reference, prediction){
+
+
+  ref_base <- apply(
+    reference,
+    2,
+    dominant_base
+  )
+
+
+  pred_base <- apply(
+    prediction,
+    2,
+    dominant_base
+  )
+
+
+  mean(
+    ref_base == pred_base
+  )
+
+}
+
+###############################################################
+# Compare two PWMs with optimized sliding alignment
+#
+# Alignment objective:
+#
+# Maximize:
+#   PWM similarity
+#
+# while minimizing:
+#   Jensen-Shannon divergence
+#
+# Uses:
+# - Pearson correlation of nucleotide probabilities
+# - IC-weighted JSD
+#
+###############################################################
+
+
+compare_pwm <- function(reference, prediction, name){
+
+
+  ref_len <- ncol(reference)
+
+  pred_len <- ncol(prediction)
+
+
+
+  best_score <- -Inf
+
+
+
+  #############################################################
+  # Test all possible alignments
+  #############################################################
+
+  offsets <- -(pred_len-1):(ref_len-1)
+
+
+
+  for(offset in offsets){
+
+
+
+    ref_start <- max(
+      1,
+      offset + 1
+    )
+
+
+    pred_start <- max(
+      1,
+      1 - offset
+    )
+
+
+
+    overlap <- min(
+
+      ref_len-ref_start+1,
+
+      pred_len-pred_start+1
+
+    )
+
+
+
+    # require sufficient overlap
+
+    if(overlap < 4)
+      next
+
+
+
+
+    ###########################################################
+    # Extract aligned regions
+    ###########################################################
+
+    ref_sub <- reference[,
+
+      ref_start:(ref_start+overlap-1),
+
+      drop=FALSE
+
+    ]
+
+
+    pred_sub <- prediction[,
+
+      pred_start:(pred_start+overlap-1),
+
+      drop=FALSE
+
+    ]
+
+
+
+
+    ###########################################################
+    # Calculate position metrics
+    ###########################################################
+
+    jsd_values <- sapply(
+
+      1:overlap,
+
+      function(i){
+
+        jsd(
+          ref_sub[,i],
+          pred_sub[,i]
+        )
+
+      }
+
+    )
+
+
+
+    IC_ref <- apply(
+
+      ref_sub,
+
+      2,
+
+      information_content
+
+    )
+
+
+
+    ###########################################################
+    # IC weighted JSD
+    ###########################################################
+
+    weighted_jsd <- sum(
+
+      jsd_values * IC_ref
+
+    ) /
+
+    sum(IC_ref + 1e-12)
+
+
+
+
+    ###########################################################
+    # PWM probability correlation
+    ###########################################################
+
+    pwm_corr <- cor(
+
+      as.vector(ref_sub),
+
+      as.vector(pred_sub),
+
+      method="pearson"
+
+    )
+
+
+    if(is.na(pwm_corr))
+      pwm_corr <- 0
+
+
+
+
+    ###########################################################
+    # Combined alignment score
+    #
+    # Higher = better
+    ###########################################################
+
+    alignment_score <-
+
+      pwm_corr -
+
+      weighted_jsd
+
+
+
+
+    ###########################################################
+    # Save best alignment
+    ###########################################################
+
+    if(alignment_score > best_score){
+
+
+      best_score <- alignment_score
+
+
+      best_offset <- offset
+
+
+      ref_best <- ref_sub
+
+
+      pred_best <- pred_sub
+
+
+      jsd_best <- jsd_values
+
+
+      weighted_jsd_best <- weighted_jsd
+
+
+      pwm_corr_best <- pwm_corr
+
+
+    }
+
+
+  }
+
+
+
+###############################################################
+# Final metrics from best alignment
+###############################################################
+
+
+Mean_JSD <- mean(
+  jsd_best
+)
+
+
+
+Weighted_JSD <- weighted_jsd_best
+
+
+
+Similarity_score <- 1 - Weighted_JSD
+
+
+
+MAE <- mean(
+
+  abs(
+    ref_best -
+      pred_best
+  )
+
+)
+
+
+
+
+###############################################################
+# Probability correlation
+###############################################################
+
+PWM_probability_correlation <- pwm_corr_best
+
+
+
+
+###############################################################
+# Information content comparison
+###############################################################
+
+IC_reference <- apply(
+
+  ref_best,
+
+  2,
+
+  information_content
+
+)
+
+
+
+IC_prediction <- apply(
+
+  pred_best,
+
+  2,
+
+  information_content
+
+)
+
+
+
+IC_correlation <- cor(
+
+  IC_reference,
+
+  IC_prediction,
+
+  method="pearson"
+
+)
+
+
+
+if(is.na(IC_correlation))
+  IC_correlation <- 0
+
+
+
+
+IC_MAE <- mean(
+
+  abs(
+    IC_reference -
+      IC_prediction
+  )
+
+)
+
+
+
+
+###############################################################
+# IC weighted MAE
+###############################################################
+
+position_MAE <- apply(
+
+  abs(
+    ref_best -
+      pred_best
+  ),
+
+  2,
+
+  mean
+
+)
+
+
+
+Weighted_MAE <- sum(
+
+  position_MAE *
+
+    IC_reference
+
+) /
+
+sum(IC_reference + 1e-12)
+
+
+
+
+###############################################################
+# Dominant nucleotide agreement
+###############################################################
+
+Base_identity <- base_identity_score(
+
+  ref_best,
+
+  pred_best
+
+)
+
+
+
+
+###############################################################
+# Alignment coverage
+###############################################################
+
+Alignment_fraction <- ncol(ref_best) /
+
+max(
+
+  ref_len,
+
+  pred_len
+
+)
+
+
+
+
+###############################################################
+# Summary table
+###############################################################
+
+summary <- data.frame(
+
+  Model=name,
+
+
+  RBNS_length=ref_len,
+
+
+  IRIS_length=pred_len,
+
+
+  Alignment_offset=best_offset,
+
+
+  Overlap=ncol(ref_best),
+
+
+  Alignment_fraction=Alignment_fraction,
+
+
+  Mean_JSD=Mean_JSD,
+
+
+  Weighted_JSD=Weighted_JSD,
+
+
+  Similarity_score=Similarity_score,
+
+
+  MAE=MAE,
+
+
+  Weighted_MAE=Weighted_MAE,
+
+
+  PWM_probability_correlation=
+    PWM_probability_correlation,
+
+
+  Base_identity=
+    Base_identity,
+
+
+  IC_correlation=
+    IC_correlation,
+
+
+  IC_MAE=
+    IC_MAE
+
+)
+
+
+
+###############################################################
+# Position-level output
+###############################################################
+
+position <- data.frame(
+
+  Model=name,
+
+
+  Position=1:ncol(ref_best),
+
+
+  JSD=jsd_best,
+
+
+  IC_RBNS=IC_reference,
+
+
+  IC_IRIS=IC_prediction,
+
+
+  RBNS_base=
+    apply(
+      ref_best,
+      2,
+      dominant_base
+    ),
+
+
+  IRIS_base=
+    apply(
+      pred_best,
+      2,
+      dominant_base
+    )
+
+)
+
+
+
+
+return(
+
+  list(
+
+    summary=summary,
+
+    position=position,
+
+    RBNS_aligned=ref_best,
+
+    Model_aligned=pred_best
+
+  )
+
+)
+
+
+}
+
+###############################################################
+# Run comparisons
+###############################################################
+
+RBNS <- PWMs$RBNS
+
+
+
+comparisons <- lapply(
+
+  names(PWMs)[names(PWMs)!="RBNS"],
+
+  function(model){
+
+
+    compare_pwm(
+
+      reference = RBNS,
+
+      prediction = PWMs[[model]],
+
+      name = model
+
+    )
+
+
+  }
+
+)
+
+
+
+###############################################################
+# Combine summary results
+###############################################################
+
+summary_table <- bind_rows(
+
+  lapply(
+
+    comparisons,
+
+    function(x)
+
+      x$summary
+
+  )
+
+)
+
+
+
+position_table <- bind_rows(
+
+  lapply(
+
+    comparisons,
+
+    function(x)
+
+      x$position
+
+  )
+
+)
+
+
+
+###############################################################
+# Rank IRIS methods
+#
+# Primary ranking:
+# 1. Higher PWM correlation
+# 2. Higher base identity
+# 3. Lower weighted JSD
+#
+###############################################################
+
+summary_ranked <- summary_table %>%
+
+  arrange(
+
+    desc(PWM_probability_correlation),
+
+    desc(Base_identity),
+
+    Weighted_JSD
+
+  )
+
+
+
+###############################################################
+# Print results
+###############################################################
+
+print(summary_ranked)
+
+
+
+###############################################################
+# Save tables
+###############################################################
+
+write.csv(
+
+  summary_ranked,
+
+  "RBNS_vs_IRIS_PWM_similarity_summary.csv",
+
+  row.names=FALSE
+
+)
+
+
+
+write.csv(
+
+  position_table,
+
+  "RBNS_vs_IRIS_PWM_similarity_positions.csv",
+
+  row.names=FALSE
+
+)
+
+
+
+###############################################################
+# Plot 1:
+# Position-specific motif divergence
+###############################################################
+
+ggplot(
+
+  position_table,
+
+  aes(
+
+    x=Position,
+
+    y=JSD,
+
+    fill=Model
+
+  )
+
+)+
+
+
+geom_col(
+
+  position="dodge"
+
+)+
+
+
+theme_classic()+
+
+
+labs(
+
+  title=
+    "Position-specific Jensen-Shannon divergence",
+
+  x=
+    "Aligned motif position",
+
+  y=
+    "JSD"
+
+)
+
+
+
+###############################################################
+# Plot 2:
+# Information content comparison
+###############################################################
+
+IC_plot <- position_table %>%
+
+  select(
+
+    Model,
+
+    Position,
+
+    IC_RBNS,
+
+    IC_IRIS
+
+  )
+
+
+
+ggplot(
+
+  IC_plot,
+
+  aes(
+
+    x=Position,
+
+    y=IC_IRIS,
+
+    group=Model
+
+  )
+
+)+
+
+
+geom_line(
+
+  aes(color=Model),
+
+  linewidth=1
+
+)+
+
+
+geom_point(
+
+  aes(color=Model),
+
+  size=3
+
+)+
+
+
+geom_line(
+
+  data=data.frame(
+
+    Position=1:ncol(RBNS),
+
+    IC_RBNS=apply(
+
+      RBNS,
+
+      2,
+
+      information_content
+
+    )
+
+  ),
+
+
+  aes(
+
+    x=Position,
+
+    y=IC_RBNS
+
+  ),
+
+
+  inherit.aes=FALSE,
+
+
+  linewidth=1,
+
+
+  linetype="dashed"
+
+)+
+
+
+theme_classic()+
+
+
+labs(
+
+  title=
+    "Information content comparison",
+
+  x=
+    "Motif position",
+
+  y=
+    "Information content (bits)"
+
+)
+
+
+
+###############################################################
+# Plot 3:
+# RBNS vs IRIS probability correlation
+###############################################################
+
+for(i in seq_along(comparisons)){
+
+
+
+  model <-
+
+    comparisons[[i]]$
+
+    summary$Model
+
+
+
+  df <- data.frame(
+
+    RBNS =
+
+      as.vector(
+
+        comparisons[[i]]$
+
+        RBNS_aligned
+
+      ),
+
+
+    IRIS =
+
+      as.vector(
+
+        comparisons[[i]]$
+
+        Model_aligned
+
+      )
+
+  )
+
+
+
+  print(
+
+    ggplot(
+
+      df,
+
+      aes(
+
+        x=RBNS,
+
+        y=IRIS
+
+      )
+
+    )+
+
+
+      geom_point(
+
+        size=3
+
+      )+
+
+
+      geom_abline(
+
+        slope=1,
+
+        intercept=0,
+
+        linetype="dashed"
+
+      )+
+
+
+      theme_classic()+
+
+
+      labs(
+
+        title=paste(
+
+          "RBNS vs",
+
+          model
+
+        ),
+
+        x=
+
+          "RBNS nucleotide probability",
+
+        y=
+
+          "IRIS nucleotide probability"
+
+      )
+
+  )
+
+
+}
+
+
+
+###############################################################
+# Reviewer summary table
+#
+# Creates simplified table for manuscript/supplement
+###############################################################
+
+reviewer_table <- summary_ranked %>%
+
+  select(
+
+    Model,
+
+    Overlap,
+
+    Alignment_fraction,
+
+    PWM_probability_correlation,
+
+    Base_identity,
+
+    Weighted_JSD,
+
+    Weighted_MAE
+
+  )
+
+
+
+write.csv(
+
+  reviewer_table,
+
+  "RBNS_vs_IRIS_reviewer_summary.csv",
+
+  row.names=FALSE
+
+)
+
+
+
+print(reviewer_table)
+
+
+
+###############################################################
+# END
+###############################################################
+```
+
+
+
+
+
+
+ 

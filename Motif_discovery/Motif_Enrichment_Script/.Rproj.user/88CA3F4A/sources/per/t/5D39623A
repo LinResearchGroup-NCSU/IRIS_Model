@@ -1,0 +1,27 @@
+{
+    "id": "5D39623A",
+    "path": "~/EC_Documents/Lin_lab/IRIS_Project/IRIS_Model/NAR_IRIS_model/Motif_enrichment/R_code/Motif_Enrichment_Script/5mer_Motif_Enrichment.Rmd",
+    "project_path": "5mer_Motif_Enrichment.Rmd",
+    "type": "r_markdown",
+    "hash": "4040162550",
+    "contents": "",
+    "dirty": false,
+    "created": 1786126499097.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2814,1",
+        "scrollLine": "2797"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1788311882,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1788311882368,
+    "read_only": false,
+    "read_only_alternatives": []
+}
